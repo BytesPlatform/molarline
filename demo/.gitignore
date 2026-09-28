@@ -24,3 +24,6 @@ retell/.demo-ids.json
 # Written by next dev for AI agents; not ours to commit.
 AGENTS.md
 CLAUDE.md
+
+# local scratch scripts
+.scratch/
