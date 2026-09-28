@@ -13,6 +13,8 @@ import { rm } from "node:fs/promises";
 import { q, resetDemo } from "../lib/db";
 import { DEMO_TENANT_ID, addMembership, createTenant, getTenant, membershipsForUser, tenantByAgentId, withTenant } from "../lib/tenancy";
 import { runTool } from "../lib/tools";
+import { createLead, getLead, setLeadStatus } from "../lib/leads";
+import { runDueJobs } from "../lib/jobs";
 import type { ToolRequest } from "../lib/retell";
 
 const CALL_ID = "call_smoke_001";
@@ -37,6 +39,46 @@ async function main() {
   if (await tenantByAgentId("agent_nobody_owns")) throw new Error("an unknown agent must not resolve to any tenant");
   await withTenant(demo, scenes);
   await isolation();
+  await landingSite();
+}
+
+/**
+ * The Book a demo form end to end, in preview mode: the lead row, the two
+ * immediate emails, the three follow-up jobs, the worker running them, and
+ * the sequence stopping when sales marks the lead contacted.
+ */
+async function landingSite() {
+  heading("landing site: demo request, emails and follow-ups");
+  const made = await createLead({
+    name: "Dana Whitlock",
+    business: "Acme Comfort Systems",
+    email: "Dana@Acme.example",
+    phone: "+18475550100",
+    message: "Answer after hours and only wake me for real emergencies.",
+    consent: true,
+    followUpMs: { 1: 0, 2: 0, 3: 60 * 60_000 },
+  });
+  console.log(`lead ${made.lead.id}, notification ${made.notification}, auto-reply ${made.autoReply}, jobs ${made.jobs.join(",")}`);
+  if (made.lead.email !== "dana@acme.example") throw new Error("email must be stored lower case");
+  const [emails] = await q<{ n: number; previews: number }>(
+    `select count(*)::int as n, count(*) filter (where status = 'preview')::int as previews from messages where lead_id = $1`,
+    [made.lead.id],
+  );
+  if (emails.n !== 2 || emails.previews !== 2) throw new Error(`expected two preview emails, found ${emails.n} (${emails.previews} previews)`);
+
+  const first = await runDueJobs();
+  console.log("worker:", first.results.map((r) => `${r.id} ${r.outcome}`).join(" | "));
+  if (first.done !== 2) throw new Error(`two follow-ups were due, ${first.done} ran`);
+  const [after] = await q<{ n: number }>(`select count(*)::int as n from messages where lead_id = $1 and template like 'lead_followup_%'`, [made.lead.id]);
+  if (after.n !== 2) throw new Error("the two due follow-ups must each produce an email");
+
+  await setLeadStatus(made.lead.id, "contacted");
+  const lead = await getLead(made.lead.id);
+  if (!lead?.sequence_stopped_at) throw new Error("marking contacted must stop the sequence");
+  const [left] = await q<{ n: number }>(`select count(*)::int as n from jobs where lead_id = $1 and status = 'queued'`, [made.lead.id]);
+  if (left.n !== 0) throw new Error("the remaining follow-up must be cancelled once contacted");
+  console.log("demo request flow holds");
+  console.log("\nAll checks passed.\n");
 }
 
 /**
@@ -71,7 +113,6 @@ async function isolation() {
   }
   if ((await membershipsForUser({ id: "user_clerk_999", email: "nobody@acme.com" })).length !== 0) throw new Error("an uninvited email must not get a workspace");
   console.log("isolation and invitation binding hold");
-  console.log("\nAll checks passed.\n");
 }
 
 async function scenes() {

@@ -13,7 +13,7 @@ export default function SignInPage() {
             This deployment has no Clerk keys, so the product pages are closed. The public demo still works.
             See docs/auth-setup.md.
           </p>
-          <a className="btn btn-quiet" href="/">
+          <a className="btn btn-quiet" href="/demo">
             Back to the demo
           </a>
         </div>

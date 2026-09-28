@@ -1931,7 +1931,7 @@ button { font: inherit; color: inherit; }
 .admin-form-inline { grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); }
 .admin-field { display: grid; gap: 0.3rem; font-size: var(--fs-tiny); color: var(--text-3); min-width: 0; }
 .admin-field-wide { grid-column: 1 / -1; }
-.admin-field input, .admin-field select {
+.admin-field input, .admin-field select, .admin-field textarea {
   width: 100%;
   padding: 0.55rem 0.7rem;
   border-radius: 0.6rem;
@@ -1940,8 +1940,10 @@ button { font: inherit; color: inherit; }
   color: var(--text);
   font: 500 var(--fs-small) var(--font-ui);
 }
-.admin-field input:focus, .admin-field select:focus { outline: 2px solid var(--accent-line); outline-offset: 1px; }
+.admin-field input:focus, .admin-field select:focus, .admin-field textarea:focus { outline: 2px solid var(--accent-line); outline-offset: 1px; }
 .admin-check { display: flex; align-items: center; gap: 0.5rem; font-size: var(--fs-small); color: var(--text-2); }
 .admin-divider { grid-column: 1 / -1; border-top: 1px solid var(--line); }
 .admin-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
 .admin-danger { border-color: rgba(255, 77, 109, 0.35); }
+.admin-field textarea { resize: vertical; font-family: var(--font-ui); }
+.admin-clamp { max-width: 22rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

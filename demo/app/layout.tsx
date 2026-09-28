@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: TITLE,
   description: DESCRIPTION,
-  applicationName: "Riverside Family Dental AI front desk",
+  applicationName: "MolarLine",
   keywords: [
     "AI dental receptionist",
     "dental phone answering",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: SITE_URL,
-    siteName: "AI Dental Receptionist demo",
+    siteName: "MolarLine",
     title: TITLE,
     description: DESCRIPTION,
     locale: "en_US",
@@ -58,12 +58,12 @@ export const viewport: Viewport = {
 const STRUCTURED_DATA = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "AI Dental Receptionist",
+  name: "MolarLine",
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   url: SITE_URL,
   description: DESCRIPTION,
-  offers: { "@type": "Offer", price: "0", priceCurrency: "USD", description: "Live demo" },
+  offers: { "@type": "Offer", price: "149", priceCurrency: "USD", description: "Starter plan, monthly" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

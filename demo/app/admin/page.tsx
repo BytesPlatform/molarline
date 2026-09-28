@@ -1,5 +1,6 @@
 import { authConfigured, platformAdminEmails } from "@/lib/auth";
 import { listTenants } from "@/lib/tenancy";
+import { leadCounts } from "@/lib/leads";
 import { createTenantAction } from "./actions";
 import Notice from "./Notice";
 
@@ -9,7 +10,7 @@ const DATE = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", 
 
 export default async function AdminHome({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams;
-  const tenants = await listTenants();
+  const [tenants, leads] = await Promise.all([listTenants(), leadCounts()]);
 
   return (
     <>
@@ -23,6 +24,16 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
       ) : null}
       {platformAdminEmails().length === 0 ? (
         <p className="admin-warn">PLATFORM_ADMIN_EMAILS is empty, so nobody can reach this console in production.</p>
+      ) : null}
+
+      {leads.new_leads > 0 ? (
+        <p className="admin-notice admin-notice-ok">
+          {leads.new_leads} new demo request{leads.new_leads === 1 ? "" : "s"} waiting.{" "}
+          <a className="admin-link" href="/admin/leads">
+            Open the list
+          </a>
+          .
+        </p>
       ) : null}
 
       <section className="admin-section">

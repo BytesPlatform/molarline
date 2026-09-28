@@ -160,6 +160,71 @@ create table if not exists demo_calls (
   summary     text
 );
 
+-- ---------- platform: prospects, email, jobs ----------
+-- These belong to us, not to a tenant. A lead becomes a tenant when sales
+-- closes it; the messages and jobs tables carry both the landing site's
+-- emails and, later, each tenant's notifications.
+
+create table if not exists leads (
+  id                  bigserial primary key,
+  created_at          timestamptz not null default now(),
+  updated_at          timestamptz not null default now(),
+  source              text not null default 'book_demo',
+  name                text not null,
+  business            text,
+  email               text not null,
+  phone               text not null,
+  message             text,
+  consent_contact     boolean not null default false,
+  consent_at          timestamptz,
+  consent_text        text,
+  status              text not null default 'new',        -- new, contacted, booked, converted, closed
+  tenant_id           text references tenants (id) on delete set null,
+  sequence_stopped_at timestamptz,
+  notes               text,
+  ip_hash             text,
+  user_agent          text
+);
+create index if not exists leads_status on leads (status, created_at);
+
+create table if not exists messages (
+  id           bigserial primary key,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now(),
+  tenant_id    text,
+  lead_id      bigint,
+  channel      text not null default 'email',              -- email, sms
+  direction    text not null default 'outbound',
+  to_address   text not null,
+  from_address text,
+  template     text not null,
+  subject      text,
+  body_text    text,
+  status       text not null default 'queued',             -- preview, queued, sent, delivered, opened, clicked, bounced, spam, failed
+  provider     text not null default 'preview',            -- preview, sendgrid, twilio
+  provider_id  text,
+  error        text,
+  events       jsonb not null default '[]'::jsonb
+);
+create index if not exists messages_lead on messages (lead_id, id);
+create index if not exists messages_tenant on messages (tenant_id, id);
+
+create table if not exists jobs (
+  id          bigserial primary key,
+  created_at  timestamptz not null default now(),
+  run_at      timestamptz not null default now(),
+  kind        text not null,
+  payload     jsonb not null default '{}'::jsonb,
+  status      text not null default 'queued',              -- queued, running, done, failed, cancelled
+  attempts    integer not null default 0,
+  last_error  text,
+  finished_at timestamptz,
+  lead_id     bigint,
+  tenant_id   text
+);
+create index if not exists jobs_due on jobs (status, run_at);
+create index if not exists jobs_lead on jobs (lead_id);
+
 -- ---------- migration for databases created before tenancy ----------
 alter table demo_patients add column if not exists tenant_id text not null default 'demo';
 alter table demo_appointments add column if not exists tenant_id text not null default 'demo';

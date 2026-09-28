@@ -17,7 +17,7 @@ export default async function NoWorkspace() {
           workspace. Invitations are sent by our team after a setup call; if you were expecting one, reply to the
           invitation email or contact the person who set you up.
         </p>
-        <a className="btn btn-quiet" href="/">
+        <a className="btn btn-quiet" href="/demo">
           Back to the demo
         </a>
       </div>

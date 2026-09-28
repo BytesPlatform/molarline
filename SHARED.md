@@ -17,8 +17,15 @@ repo carries, so a fix made in one can be diffed into the others.
 | `demo/app/app/**` | the signed-in workspace shell | 0.1 | hvac |
 | `demo/app/components/AccountChip.tsx` | who is signed in | 0.1 | hvac |
 | `demo/docs/auth-setup.md` | Clerk and admin setup | 0.1 | hvac |
+| `demo/lib/messaging/email.ts` | SendGrid send, preview mode, event handling | 0.1 (2026-09-28) | hvac |
+| `demo/lib/jobs.ts` | jobs table, worker, retries | 0.1 (2026-09-28) | hvac |
+| `demo/lib/leads.ts` | demo requests, auto-reply, follow-up sequence, convert to tenant | 0.1 (2026-09-28) | hvac |
+| `demo/emails/**` | React Email templates (Layout, LeadNotification, LeadAutoReply, LeadFollowUp) | 0.1 (2026-09-28) | hvac |
+| `demo/app/api/leads`, `demo/app/api/jobs/run`, `demo/app/api/sendgrid/events` | the public form endpoint, the cron worker, the SendGrid webhook | 0.1 (2026-09-28) | hvac |
+| `demo/app/admin/leads/**`, `demo/app/admin/jobs/**` | demo requests and job log in the console | 0.1 (2026-09-28) | hvac |
+| `demo/app/(site)/**` | the marketing site shell, components and stylesheet; page copy is product-specific | 0.1 (2026-09-28) | hvac |
 
-Product-specific by design: `lib/config.ts`, `lib/tools.ts`, `lib/schema.ts`
+Product-specific by design: `lib/product.ts`, `lib/recordings.ts`, the copy inside `app/(site)/*/page.tsx`, `lib/config.ts`, `lib/tools.ts`, `lib/schema.ts`
 (the vertical's tables), `retell/`, the dashboard panels, the seed.
 
 When copying: bring the file over unchanged, then adapt the imports and the

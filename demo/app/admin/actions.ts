@@ -9,6 +9,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { TENANT_COOKIE, requestOrigin, requirePlatformAdmin, sendInvitation } from "@/lib/auth";
 import { resetTenant } from "@/lib/db";
+import { retryJob, runDueJobs } from "@/lib/jobs";
+import { convertLead, setLeadNotes, setLeadStatus, type LeadStatus } from "@/lib/leads";
 import {
   addMembership,
   createTenant,
@@ -138,4 +140,47 @@ export async function clearWorkspaceAction(form: FormData): Promise<void> {
   if (text(form, "confirm") !== id) back(`/admin/tenants/${id}`, "Type the workspace id to confirm clearing it.", "error");
   await resetTenant(id);
   back(`/admin/tenants/${id}`, id === "demo" ? "Demo reseeded." : "Workspace cleared.");
+}
+
+/* ------------------------------------------------------------ leads and jobs */
+
+export async function setLeadStatusAction(form: FormData): Promise<void> {
+  await requirePlatformAdmin();
+  const id = Number(text(form, "id"));
+  const status = text(form, "status") as LeadStatus;
+  if (!["new", "contacted", "booked", "closed"].includes(status)) back(`/admin/leads/${id}`, "Unknown status.", "error");
+  await setLeadStatus(id, status);
+  back(`/admin/leads/${id}`, status === "new" ? "Marked new. Follow-ups already sent are not resent." : `Marked ${status}. Follow-up emails stopped.`);
+}
+
+export async function saveLeadNotesAction(form: FormData): Promise<void> {
+  await requirePlatformAdmin();
+  const id = Number(text(form, "id"));
+  await setLeadNotes(id, text(form, "notes").slice(0, 4000));
+  back(`/admin/leads/${id}`, "Notes saved.");
+}
+
+export async function convertLeadAction(form: FormData): Promise<void> {
+  await requirePlatformAdmin();
+  const id = Number(text(form, "id"));
+  const tenant = await convertLead(id, {
+    name: text(form, "name") || undefined,
+    shortName: text(form, "short_name") || undefined,
+    plan: text(form, "plan") || undefined,
+    includedMinutes: Number(text(form, "included_minutes")) || 0,
+  });
+  back(`/admin/tenants/${tenant.id}`, `${tenant.name} created from the demo request. Send the owner's invitation below.`);
+}
+
+export async function runJobsNowAction(): Promise<void> {
+  await requirePlatformAdmin();
+  await import("@/lib/leads");
+  const report = await runDueJobs();
+  back("/admin/leads", `Ran ${report.claimed} due job${report.claimed === 1 ? "" : "s"}: ${report.done} done, ${report.retried} retried, ${report.failed} failed.`);
+}
+
+export async function retryJobAction(form: FormData): Promise<void> {
+  await requirePlatformAdmin();
+  await retryJob(Number(text(form, "id")));
+  back("/admin/jobs", "Job queued again.");
 }
