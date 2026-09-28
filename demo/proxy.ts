@@ -12,6 +12,11 @@ import { clerkMiddleware } from "@clerk/nextjs/server";
 
 const configured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY);
 
+/** The addresses this product used to live at. Anyone arriving there is sent to the current one, path intact. */
+const LEGACY_HOSTS: Record<string, string> = {
+  "dental-ai-receptionist-eta.vercel.app": "https://molarline.vercel.app",
+};
+
 const isProtected = (request: NextRequest) => /^\/(app|admin)(\/|$)/.test(request.nextUrl.pathname);
 
 const withClerk = clerkMiddleware(async (auth, request) => {
@@ -19,6 +24,8 @@ const withClerk = clerkMiddleware(async (auth, request) => {
 });
 
 export default function proxy(request: NextRequest, event: Parameters<typeof withClerk>[1]) {
+  const host = request.headers.get("host") ?? "";
+  if (LEGACY_HOSTS[host]) return NextResponse.redirect(`${LEGACY_HOSTS[host]}${request.nextUrl.pathname}${request.nextUrl.search}`, 308);
   if (!configured) return NextResponse.next();
   return withClerk(request, event);
 }

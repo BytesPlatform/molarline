@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const SITE_URL = "https://dental-ai-receptionist-eta.vercel.app";
+const SITE_URL = "https://molarline.vercel.app";
 
 /** Crawlers may read the page. The API routes are for the app, not for search. */
 export default function robots(): MetadataRoute.Robots {

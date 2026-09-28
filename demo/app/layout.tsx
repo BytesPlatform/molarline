@@ -4,7 +4,7 @@ import "./globals.css";
 
 const clerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY);
 
-const SITE_URL = "https://dental-ai-receptionist-eta.vercel.app";
+const SITE_URL = "https://molarline.vercel.app";
 const TITLE = "AI Dental Receptionist | HIPAA-Aware, Books 24/7";
 const DESCRIPTION =
   "AI dental receptionist that answers every call, books cleanings into your schedule and logs every step for HIPAA. Try the live demo.";

@@ -23,7 +23,7 @@ export const PRODUCT = {
   buyer: "practices",
   worker: "provider",
   booking: "appointment",
-  siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "https://dental-ai-receptionist-eta.vercel.app",
+  siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "https://molarline.vercel.app",
   salesInbox: process.env.SALES_INBOX || "bytesuite@bytesplatform.com",
   fromEmail: process.env.SENDGRID_FROM_EMAIL || "hello@bytesplatform.com",
   fromName: process.env.SENDGRID_FROM_NAME || "MolarLine",

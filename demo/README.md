@@ -116,7 +116,7 @@ terms, and Book a demo). The public demo moved to `/demo`. Book a demo
 writes a lead, emails the sales inbox, auto-replies to the prospect and
 schedules a three-step follow-up that stops when the lead is marked
 contacted in the console. Email goes through SendGrid and stays in preview
-mode until `SENDGRID_API_KEY` exists; the worker runs from Vercel Cron once a day with
+mode until `SENDGRID_API_KEY` exists; the worker runs from Vercel Cron every five minutes with
 `CRON_SECRET`. Every word of site and email copy lives in `lib/product.ts`.
 
 ## The product behind the demo
