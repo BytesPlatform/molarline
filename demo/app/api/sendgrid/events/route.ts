@@ -51,12 +51,17 @@ export async function POST(request: NextRequest) {
   const signature = request.headers.get("x-twilio-email-event-webhook-signature") ?? "";
   const timestamp = request.headers.get("x-twilio-email-event-webhook-timestamp") ?? "";
 
-  const { EventWebhook } = await import("@sendgrid/eventwebhook");
-  const verifier = new EventWebhook();
-  const key = verifier.convertPublicKeyToECDSA(publicKey);
-  if (!verifier.verifySignature(key, rawBody, signature, timestamp)) {
-    return NextResponse.json({ error: "invalid signature" }, { status: 401 });
+  // A missing or malformed signature makes the verifier throw; that is a refusal, not a crash.
+  let valid = false;
+  try {
+    const { EventWebhook } = await import("@sendgrid/eventwebhook");
+    const verifier = new EventWebhook();
+    const key = verifier.convertPublicKeyToECDSA(publicKey);
+    valid = Boolean(signature && timestamp && verifier.verifySignature(key, rawBody, signature, timestamp));
+  } catch {
+    valid = false;
   }
+  if (!valid) return NextResponse.json({ error: "invalid signature" }, { status: 401 });
 
   let events: SendGridEvent[];
   try {
