@@ -108,7 +108,10 @@ async function makeDriver(): Promise<Driver> {
   const url = connectionString();
 
   if (url) {
-    const { Pool } = await import("pg");
+    // pg is CommonJS. Under Next the named export exists; under tsx (the seed
+    // and smoke scripts) only the default does. Accept both.
+    const pgModule = (await import("pg")) as { Pool?: typeof import("pg").Pool; default?: { Pool: typeof import("pg").Pool } };
+    const Pool = pgModule.Pool ?? pgModule.default!.Pool;
     const isLocal = url.includes("localhost") || url.includes("127.0.0.1");
     const pool = new Pool({
       connectionString: url,
