@@ -22,7 +22,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
             <h1 className="admin-title">Job log</h1>
             <span className="admin-sub">
               {counts.queued} queued · {counts.running} running · {counts.failed} failed · {counts.done_24h} done in the last day ·{" "}
-              {process.env.CRON_SECRET ? "worker runs every five minutes" : "CRON_SECRET not set, worker cannot run"}
+              {process.env.CRON_SECRET ? "worker runs once a day at 14:00 UTC" : "CRON_SECRET not set, worker cannot run"}
             </span>
           </div>
           <form action={runJobsNowAction}>

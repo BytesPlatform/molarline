@@ -2,7 +2,8 @@
  * Jobs: things that happen later.
  *
  * A row in the jobs table with a run_at. Vercel Cron calls /api/jobs/run
- * every five minutes, which claims the due rows and runs each one. A job
+ * once a day (the Hobby plan allows no more; the console can run it on
+ * demand), which claims the due rows and runs each one. A job
  * that throws is retried up to three times, then marked failed and shown in
  * the admin console. Nothing here is clever on purpose: the table is the
  * queue, and the console is the monitoring.

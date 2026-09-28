@@ -1,5 +1,5 @@
 /**
- * The job worker. Vercel Cron calls it every five minutes with
+ * The job worker. Vercel Cron calls it once a day with
  * "Authorization: Bearer <CRON_SECRET>". Without CRON_SECRET set the route
  * refuses everything, so a deployment cannot be driven by strangers.
  */
