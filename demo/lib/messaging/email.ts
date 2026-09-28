@@ -80,7 +80,9 @@ export async function sendEmail(input: SendEmailInput): Promise<SentEmail> {
       subject: input.subject,
       html,
       text,
-      customArgs: { message_id: String(id) },
+      // The site tag lets one SendGrid webhook serve all three products: the
+      // receiving site keeps its own events and forwards the rest.
+      customArgs: { message_id: String(id), site: PRODUCT.siteUrl },
       trackingSettings: { clickTracking: { enable: true, enableText: false }, openTracking: { enable: true } },
     });
     const providerId = String(response.headers?.["x-message-id"] ?? "");
