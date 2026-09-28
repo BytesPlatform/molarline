@@ -14,6 +14,8 @@ export interface Step {
 export const PRODUCT = {
   name: "MolarLine",
   company: "Bytes Platform",
+  /** One accent per product, used by the site and the emails. */
+  accent: { main: "#d81b7a", deep: "#ad1260", gradientFrom: "#ff5fae", gradientTo: "#a33bd6" },
   headline: "Keep every chair full, without adding to the front desk",
   subhead:
     "An AI receptionist for dental practices. It answers every call, finds the patient, books cleanings and exams into open chair time at the right office, confirms by text, and hands anything clinical to your team. Built for HIPAA from the first line of code.",

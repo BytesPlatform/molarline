@@ -8,7 +8,18 @@ import "./site.css";
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="site">
+    <div
+      className="site"
+      style={
+        {
+          "--s-accent": PRODUCT.accent.main,
+          "--s-accent-deep": PRODUCT.accent.deep,
+          "--s-accent-soft": `color-mix(in srgb, ${PRODUCT.accent.main} 11%, transparent)`,
+          "--s-gradient-from": PRODUCT.accent.gradientFrom,
+          "--s-gradient-to": PRODUCT.accent.gradientTo,
+        } as React.CSSProperties
+      }
+    >
       <header className="s-header">
         <div className="s-wrap">
           <a className="s-logo" href="/">
