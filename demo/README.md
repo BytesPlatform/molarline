@@ -1,4 +1,6 @@
-# Dental AI receptionist, sales demo
+# MolarLine, the app
+
+This folder is the MolarLine product: the marketing site, the public demo, the practice workspace and our console. The repository README one level up describes the product; this file is the operator's manual for the assistant and the demo. The demo answers as Riverside Family Dental, a fictional two-office practice.
 
 A working, self contained demo of a HIPAA minded AI phone receptionist for a
 dental practice. It answers the phone as Riverside Family Dental, identifies a
@@ -11,10 +13,10 @@ rows, the consent rows and the redaction toggle are the same code paths the
 production build uses. What is not real is the practice: every patient in
 `lib/seed.ts` is invented, and no practice management system is connected.
 
-The demo is a cut down version of the production plan in `../PLAN.md`. The
-differences that matter: no n8n, no NexHealth, no knowledge base, a 30 day
-retention setting instead of 90, and the practice facts live in the agent
-prompt rather than in a knowledge base.
+`../PLAN.md` is the original build plan for a bespoke practice install (n8n,
+NexHealth, a knowledge base). The product took a different path: no n8n, the
+facts live in the agent prompt, and NexHealth is an onboarding step. Read the
+plan for the compliance thinking, not for the architecture.
 
 ## What is in here
 
