@@ -30,7 +30,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
       {!cronSet ? (
         <p className="admin-warn">
           CRON_SECRET is not set, so the scheduled worker cannot run and follow-up emails stay queued. Set it on Vercel; the
-          cron in vercel.json calls the worker every five minutes with it.
+          cron in vercel.json calls the worker with it.
         </p>
       ) : null}
 
