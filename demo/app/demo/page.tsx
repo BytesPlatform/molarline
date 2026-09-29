@@ -1,9 +1,13 @@
 /**
- * The live demo, behind sign-in (proxy.ts): a signed-in customer or admin
- * can call the demo agent and reset it. The product itself lives at /app.
+ * The live demo, for invited customers and our team: proxy.ts asks for a
+ * session, and this page asks for a membership or a platform admin on top,
+ * so an account someone created by itself unlocks nothing. The product
+ * lives at /app.
  */
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import Desk from "@/app/components/Desk";
+import { demoAccess, getSession } from "@/lib/auth";
 import { PRODUCT } from "@/lib/product";
 
 export const metadata: Metadata = {
@@ -12,6 +16,7 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-export default function DemoPage() {
+export default async function DemoPage() {
+  if (!(await demoAccess())) redirect((await getSession()) ? "/app/no-workspace" : "/sign-in");
   return <Desk scope="demo" canReset />;
 }

@@ -79,6 +79,22 @@ export async function requirePlatformAdmin(): Promise<Session> {
   return session;
 }
 
+/**
+ * Whether the signed-in person may use the live demo: an invited member or
+ * a platform admin. A session alone is not enough, because sign-up may be
+ * open at the provider and a bare account must unlock nothing. Deployments
+ * without Clerk keys stay open so the demo can be worked on before the
+ * Clerk application exists.
+ */
+export async function demoAccess(): Promise<boolean> {
+  if (!authConfigured()) return true;
+  const session = await getSession();
+  if (!session) return false;
+  if (isPlatformAdmin(session)) return true;
+  const memberships = await membershipsForUser({ id: session.userId, email: session.email });
+  return memberships.length > 0;
+}
+
 export interface TenantContext {
   session: Session;
   tenant: Tenant;

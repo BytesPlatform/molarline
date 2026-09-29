@@ -7,7 +7,7 @@
  */
 
 import { NextResponse, type NextRequest } from "next/server";
-import { getSession, resolveTenant, type TenantContext } from "./auth";
+import { demoAccess, getSession, resolveTenant, type TenantContext } from "./auth";
 import { DEMO_TENANT_ID, getTenant, type Tenant } from "./tenancy";
 
 export type Scope = "demo" | "app";
@@ -22,6 +22,9 @@ export async function tenantForRequest(
   const scope = scopeOf(request);
 
   if (scope === "demo") {
+    // A session alone is not enough: the demo needs an invited membership
+    // or a platform admin, so a bare account unlocks nothing.
+    if (!(await demoAccess())) return NextResponse.json({ error: "not found" }, { status: 404 });
     const tenant = await getTenant(DEMO_TENANT_ID);
     if (!tenant) return NextResponse.json({ error: "demo tenant missing" }, { status: 500 });
     return { tenant, ctx: null, scope };
