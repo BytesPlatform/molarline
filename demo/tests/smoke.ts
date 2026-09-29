@@ -45,6 +45,52 @@ async function main() {
   await isolation();
   await landingSite();
   await onboardingConfig();
+  await automation();
+}
+
+/** Phase 4: consent-gated texting, STOP handling and the scheduled emails. */
+async function automation() {
+  heading("automation: consent, suppression and the scheduled emails");
+  const { stopKeyword, recordSmsConsent, sendSms } = await import("../lib/sms");
+  const { enqueue, runDueJobs: runJobs } = await import("../lib/jobs");
+  await import("../lib/automation");
+  const { q: qq } = await import("../lib/db");
+  const { addMembership: addM, createTenant: mkTenant, withTenant: inTenant } = await import("../lib/tenancy");
+
+  if (stopKeyword("STOP") !== "stop" || stopKeyword("Start") !== "start" || stopKeyword("HELP") !== "help") throw new Error("keywords must be recognised");
+  if (stopKeyword("please stop calling") !== null) throw new Error("STOP must only match as the first word");
+
+  const owner = await mkTenant({ name: "Lakeside Dental", mainNumber: "(312) 555-0100" });
+  await addM({ tenantId: owner.id, email: "boss@lakeside.example", name: "Robin Vale", role: "owner" });
+  await qq(`update tenants set status = 'active', config = config || $2::jsonb where id = $1`, [
+    owner.id,
+    JSON.stringify({ onboarding: { step: 8, startedAt: new Date().toISOString(), completedAt: new Date(Date.now() - 8 * 86_400_000).toISOString(), checklist: {}, testCallId: null } }),
+  ]);
+
+  await inTenant(owner, async () => {
+    const silent = await sendSms({ to: "(312) 555-0177", body: "never asked for this", template: "test" });
+    if (silent.status !== "no_consent") throw new Error(`without an opt-in no text may go, got ${silent.status}`);
+    await recordSmsConsent({ phone: "+13125550177", kind: "sms_opt_in", source: "call", callId: "call_smoke_1" });
+    const allowed = await sendSms({ to: "(312) 555-0177", body: "reminder", template: "test" });
+    if (allowed.status !== "queued") throw new Error(`after opt-in the text must queue, got ${allowed.status}`);
+    await recordSmsConsent({ phone: "+13125550177", kind: "sms_opt_out", source: "inbound_sms" });
+    const blocked = await sendSms({ to: "(312) 555-0177", body: "should never go", template: "test" });
+    if (blocked.status !== "no_consent" && blocked.status !== "suppressed") throw new Error(`after STOP nothing may go, got ${blocked.status}`);
+  });
+
+  await enqueue("daily_summary", { tenant_id: owner.id }, new Date(Date.now() - 1000), { tenantId: owner.id });
+  const ran = await runJobs();
+  const daily = ran.results.find((r) => r.kind === "daily_summary");
+  if (!daily || !/re-engagement sent/.test(daily.outcome)) throw new Error(`expected the re-engagement nudge, got ${daily?.outcome}`);
+  const [next] = await qq<{ n: number }>(`select count(*)::int as n from jobs where tenant_id = $1 and kind = 'daily_summary' and status = 'queued'`, [owner.id]);
+  if (next.n !== 1) throw new Error("the daily job must reschedule itself exactly once");
+
+  await enqueue("weekly_report", { tenant_id: owner.id }, new Date(Date.now() - 1000), { tenantId: owner.id });
+  const ran2 = await runJobs();
+  const weekly = ran2.results.find((r) => r.kind === "weekly_report");
+  if (!weekly || !/sent/.test(weekly.outcome)) throw new Error(`expected the weekly report to send, got ${weekly?.outcome}`);
+
+  console.log("consent, suppression and the scheduled emails hold");
 }
 
 /** The practice configuration: defaults, merge, office lookup, and what the agent is rendered from. */

@@ -13,7 +13,13 @@
 
 import { q } from "./db";
 
-export type JobKind = "lead_followup" | "onboarding_nudge" | "tenant_lifecycle";
+export type JobKind =
+  | "lead_followup"
+  | "onboarding_nudge"
+  | "tenant_lifecycle"
+  | "daily_summary"
+  | "weekly_report"
+  | "visit_reminder";
 
 export interface Job {
   id: number;

@@ -85,6 +85,9 @@ export async function goLive(tenantId: string): Promise<void> {
     await enqueue("tenant_lifecycle", { tenant_id: t.id, kind: "day3" }, new Date(Date.now() + 3 * 24 * 60 * 60_000), { tenantId: t.id });
     await enqueue("tenant_lifecycle", { tenant_id: t.id, kind: "day7" }, new Date(Date.now() + 7 * 24 * 60 * 60_000), { tenantId: t.id });
   }
+  // The recurring summary and report start the moment the line is live.
+  const { ensureTenantSchedules } = await import("./automation");
+  await ensureTenantSchedules({ ...t, status: "active" });
 }
 
 /* ------------------------------------------------------------------ jobs */

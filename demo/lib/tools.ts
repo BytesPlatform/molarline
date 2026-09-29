@@ -12,11 +12,14 @@
  */
 
 import { q } from "./db";
-import { tenantId } from "./tenancy";
+import { tenant, tenantId } from "./tenancy";
 import {
   APPOINTMENT_TYPES,
 } from "./config";
 import { logAccess, logConsent, logPipeline, queueRequest, touchCall } from "./audit";
+import { enqueue } from "./jobs";
+import { notifyOwners } from "./notify";
+import { recordSmsConsent } from "./sms";
 import { appointmentTypeByIdFor, cfg, operatoriesFor, providerByIdFor, resolveOfficeFor } from "./tenant-config";
 
 // The practice's own configuration, read at call time. The demo tenant runs on the defaults in config.ts.
@@ -259,6 +262,24 @@ async function bookAppointment(req: ToolRequest): Promise<ToolResponse> {
   });
   await logPipeline(req.call.call_id, "audit_logged", "ok", "1 access row written");
 
+  // The owner hears about it, and the patient gets a reminder the day
+  // before (sent only if they opted in; the text carries nothing beyond
+  // date, time, provider and office).
+  const t = tenant();
+  const whenLabel = new Intl.DateTimeFormat("en-US", { weekday: "long", hour: "numeric", minute: "2-digit", timeZone: t.timezone }).format(slot.start);
+  await notifyOwners(t, {
+    template: "owner_booked",
+    subject: `Booked: ${type.name}, ${whenLabel}`,
+    title: "The assistant booked an appointment",
+    lines: [`${type.name} with ${provider?.name ?? "a provider"} is on the schedule for ${whenLabel}.`],
+    ctaLabel: "See the schedule",
+    ctaPath: "/app/schedule",
+  });
+  const reminderAt = new Date(slot.start.getTime() - 24 * 3_600_000);
+  if (reminderAt.getTime() > Date.now() + 30 * 60_000) {
+    await enqueue("visit_reminder", { tenant_id: t.id, appointment_id: id, starts_at: slot.start.toISOString() }, reminderAt, { tenantId: t.id });
+  }
+
   return { status: "booked", say: say(slot.start, slot.providerId), appointment_id: id };
 }
 
@@ -361,24 +382,9 @@ async function confirmAppointment(req: ToolRequest): Promise<ToolResponse> {
 async function recordSmsOptIn(req: ToolRequest): Promise<ToolResponse> {
   const optedIn = req.args.opted_in === true || String(req.args.opted_in).toLowerCase() === "true";
   const phone = String(req.call.from_number ?? req.args.phone ?? "+15550000000");
-  const last4 = phone.replace(/\D/g, "").slice(-4) || "0000";
 
-  await logConsent({
-    callId: req.call.call_id,
-    phoneHash: phoneHash(phone),
-    phoneLast4: last4,
-    kind: optedIn ? "sms_opt_in" : "sms_opt_out",
-    scriptVer: "v1.0",
-    channel: "voice",
-  });
-
-  if (!optedIn) {
-    await q(
-      `insert into suppression_list (tenant_id, phone_hash, source) values ($2,$1,'verbal')
-       on conflict (tenant_id, phone_hash) do nothing`,
-      [phoneHash(phone), tenantId()],
-    );
-  }
+  // One registry for consent and suppression, shared with the STOP webhook.
+  await recordSmsConsent({ phone, kind: optedIn ? "sms_opt_in" : "sms_opt_out", source: "call", callId: req.call.call_id });
 
   await logPipeline(req.call.call_id, "consent_recorded", "ok", optedIn ? "text reminders on" : "opted out");
   if (optedIn) {
@@ -404,6 +410,14 @@ async function fallbackToQueue(
   });
 
   await logPipeline(req.call.call_id, "appointment_written", "warn", `queued for the front desk, ref ${id}`);
+  await notifyOwners(tenant(), {
+    template: "owner_queue",
+    subject: `Front desk request: ${reason.replace(/_/g, " ")}`,
+    title: "A request is waiting for the front desk",
+    lines: [`The assistant could not finish this on the call and queued it: ${reason.replace(/_/g, " ")}.`],
+    ctaLabel: "Open the Needs-you list",
+    ctaPath: "/app",
+  });
   await logAccess({
     actor: "n8n",
     action: "queue_request",

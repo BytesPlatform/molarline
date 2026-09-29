@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { timingSafeEqual } from "node:crypto";
+import { ensureAutomationSchedules } from "@/lib/automation";
 import { runDueJobs } from "@/lib/jobs";
 // Registers the handlers. Nothing else imports leads on this path.
 import "@/lib/leads";
@@ -28,6 +29,9 @@ async function handle(request: NextRequest) {
   if (!authorised(request)) {
     return NextResponse.json({ error: process.env.CRON_SECRET ? "unauthorised" : "CRON_SECRET is not set" }, { status: 401 });
   }
+  // Heal the recurring schedules first, so every active tenant always has
+  // its next summary and report on the books.
+  await ensureAutomationSchedules();
   const report = await runDueJobs();
   return NextResponse.json({ ok: true, ran_at: new Date().toISOString(), ...report });
 }

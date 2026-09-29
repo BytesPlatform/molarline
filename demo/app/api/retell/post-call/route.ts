@@ -10,6 +10,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { closeCall, flagCall, logAccess, logConsent, logPipeline, saveCallMedia, touchCall } from "@/lib/audit";
+import { notifyOwners } from "@/lib/notify";
 import { redact } from "@/lib/redact";
 import { phoneHash, signatureRequired, verifyRetellSignature } from "@/lib/retell";
 import { tenantByAgentId, withTenant } from "@/lib/tenancy";
@@ -97,6 +98,20 @@ export async function POST(request: NextRequest) {
       transcript: call.transcript ? redact(call.transcript).text : null,
       recordingUrl: call.recording_url,
     });
+    // A call the line could not complete is worth telling the owner about.
+    if (/error|failed/i.test(call.disconnection_reason ?? "") && tenant.id !== "demo") {
+      await notifyOwners(tenant, {
+        template: "owner_failed_call",
+        subject: "A call could not be completed",
+        title: "A call did not go through",
+        lines: [
+          `A call ended with "${(call.disconnection_reason ?? "").replace(/_/g, " ")}".`,
+          "The caller may try again; if this repeats, reply to this email and we will look at the line together.",
+        ],
+        ctaLabel: "See the call",
+        ctaPath: `/app/calls?call=${encodeURIComponent(callId)}`,
+      });
+    }
     return NextResponse.json({ received: true });
   }
 
@@ -121,6 +136,16 @@ export async function POST(request: NextRequest) {
         outcome: "flagged",
         detail: { reason: "phi_beyond_scheduling" },
       });
+      if (tenant.id !== "demo") {
+        await notifyOwners(tenant, {
+          template: "owner_flagged",
+          subject: "A call was handed to staff",
+          title: "A caller needed a person",
+          lines: ["The caller raised something clinical or billing; the assistant stepped back and took a message."],
+          ctaLabel: "See the call",
+          ctaPath: `/app/calls?call=${encodeURIComponent(callId)}`,
+        });
+      }
     }
 
     await logAccess({
