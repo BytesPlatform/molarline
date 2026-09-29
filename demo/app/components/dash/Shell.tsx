@@ -72,13 +72,21 @@ const NAV: { id: DashPage; href: string; label: string; icon: ReactNode }[] = [
   },
 ];
 
+/**
+ * Two segments, the current one marked. A single button labelled with the
+ * other theme reads as a statement about the current one ("Light" on a
+ * dark screen), so both are always shown and the active one is lit.
+ *
+ * The lit segment is chosen by CSS from data-theme, which the layout's
+ * script sets before the first paint, so it is right on the first frame.
+ * React state only carries aria-pressed for screen readers.
+ */
 function ThemeToggle() {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useState<"light" | "dark" | null>(null);
   useEffect(() => {
     setTheme(document.documentElement.dataset.theme === "dark" ? "dark" : "light");
   }, []);
-  const flip = () => {
-    const next = theme === "dark" ? "light" : "dark";
+  const choose = (next: "light" | "dark") => {
     setTheme(next);
     document.documentElement.dataset.theme = next;
     try {
@@ -88,9 +96,21 @@ function ThemeToggle() {
     }
   };
   return (
-    <button type="button" className="btn btn-quiet dash-theme" onClick={flip} aria-label="Switch theme">
-      {theme === "dark" ? "Light" : "Dark"}
-    </button>
+    <div className="dash-theme" role="group" aria-label="Theme">
+      <button type="button" className="dash-theme-seg is-light" onClick={() => choose("light")} aria-pressed={theme === null ? undefined : theme === "light"}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" strokeWidth="2" />
+          <path d="M12 2.8v2.1M12 19.1v2.1M21.2 12h-2.1M4.9 12H2.8m15.2-6.1-1.5 1.5M7.3 16.7l-1.5 1.5m12.4 0-1.5-1.5M7.3 7.3 5.8 5.8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+        Light
+      </button>
+      <button type="button" className="dash-theme-seg is-dark" onClick={() => choose("dark")} aria-pressed={theme === null ? undefined : theme === "dark"}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20 14.2A8.2 8.2 0 0 1 9.8 4a8.4 8.4 0 1 0 10.2 10.2Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+        </svg>
+        Dark
+      </button>
+    </div>
   );
 }
 
