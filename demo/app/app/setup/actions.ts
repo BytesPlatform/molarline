@@ -61,7 +61,7 @@ export async function saveBusinessAction(form: FormData): Promise<void> {
   const callback = text(form, "callback_number");
   if (!callback) back("business", "The number the assistant gives out is required.", form);
   const offices: Location[] = [];
-  for (const line of text(form, "offices").split("\n")) {
+  for (const line of text(form, "offices").split(/\r?\n/)) {
     const [name, address, phone, hours, parking] = line.split("|").map((s) => s.trim());
     if (!name) continue;
     const existing = c.offices.find((l) => l.name.toLowerCase() === name.toLowerCase());
@@ -86,7 +86,7 @@ export async function saveServicesAction(form: FormData): Promise<void> {
 
   const providers: Provider[] = [];
   let i = 0;
-  for (const line of text(form, "providers").split("\n")) {
+  for (const line of text(form, "providers").split(/\r?\n/)) {
     const [name, title, office] = line.split("|").map((s) => s.trim());
     if (!name) continue;
     const loc = c.offices.find((l) => l.name.toLowerCase() === (office || "").toLowerCase() || l.id === (office || "").toLowerCase()) ?? c.offices[0];
@@ -94,7 +94,7 @@ export async function saveServicesAction(form: FormData): Promise<void> {
     providers.push({ id: `prov_${slug(name)}`, name, title: title || "General dentistry", tone: TONES[i++ % TONES.length], locationId: loc.id });
   }
   const appointmentTypes: AppointmentType[] = [];
-  for (const line of text(form, "appointment_types").split("\n")) {
+  for (const line of text(form, "appointment_types").split(/\r?\n/)) {
     const [name, minutes, who] = line.split("|").map((s) => s.trim());
     if (!name) continue;
     const wanted = (who || "").split(/[,;]+/).map((s) => s.trim().toLowerCase()).filter(Boolean);
@@ -144,6 +144,8 @@ export async function publishAgentAction(form: FormData): Promise<void> {
   try {
     const r = await provisionAgent(ctx.tenant.id);
     const mode = text(form, "mode");
+    // A published assistant is what the test call needs, so publishing unlocks it.
+    if (mode !== "settings") await saveConfig(ctx.tenant.id, {}, 6);
     redirect(mode === "settings" ? `/app/settings?ok=${encodeURIComponent(`Assistant published, version ${r.version ?? "1"}.`)}` : `/app/setup/${step}?ok=${encodeURIComponent("Assistant published.")}`);
   } catch (err) {
     if ((err as { digest?: string })?.digest?.startsWith("NEXT_REDIRECT")) throw err;
