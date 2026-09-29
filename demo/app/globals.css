@@ -2113,3 +2113,17 @@ button { font: inherit; color: inherit; }
 .urg-review { background: var(--warn-soft); color: var(--warn); }
 .urg-referral { background: var(--cool-soft); color: var(--cool); }
 .urg-disqualified { background: var(--error-soft); color: var(--error); }
+
+/* breathing room: the dashboard content is capped and centred, with a
+   gutter that grows with the window instead of hugging the edges */
+.dash-main { max-width: 80rem; width: 100%; margin: 0 auto; padding: 1.6rem clamp(1.25rem, 3vw, 2.75rem); }
+.dash-top { padding: 0.9rem clamp(1.25rem, 3vw, 2.75rem); }
+
+/* the settings rail has no step numbers, so its titles must not fall
+   into the number column of the setup grid (one word per line otherwise) */
+.setup-settings .setup-steps li a { display: block; }
+
+/* inside the product shell the big demo call-to-action reads shouty;
+   publish and save are ordinary buttons */
+.setup .btn-cta { display: inline-flex; width: auto; text-transform: none; letter-spacing: 0.01em; font-size: var(--fs-small); padding: 0.6rem 1.3rem; animation: none; }
+.setup .btn-cta:hover { transform: none; }
