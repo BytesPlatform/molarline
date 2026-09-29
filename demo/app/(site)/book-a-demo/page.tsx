@@ -18,8 +18,7 @@ export default function BookADemo() {
             <h1 className="s-h2">{PRODUCT.bookTitle}</h1>
             <p className="s-p">{PRODUCT.bookLead}</p>
             <p className="s-p">
-              Prefer to hear it first? The <a href="/#hear-it">recorded call</a> is on the home page and the{" "}
-              <a href="/demo">live demo</a> is open now.
+              Prefer to hear it first? The <a href="/#hear-it">recorded call</a> is on the home page.
             </p>
             <p className="s-small">
               We do not run a self-serve trial. Every customer starts with this call, so the assistant is set up right the

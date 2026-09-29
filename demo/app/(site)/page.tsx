@@ -34,7 +34,8 @@ export default function Home() {
               </Rise>
               <Rise delay={0.2}>
                 <p className="s-note">
-                  Want to speak to it yourself? The <a href="/demo">live demo</a> answers in your browser, no signup.
+                  Want to speak to it yourself? <a href="/book-a-demo">Book a demo</a> and you call it live, set up on
+                  your own details.
                 </p>
               </Rise>
             </div>
@@ -121,8 +122,8 @@ export default function Home() {
               <a className="s-btn s-btn-primary" href="/book-a-demo">
                 Book a demo
               </a>
-              <a className="s-btn lp-btn-ghost" href="/demo">
-                Try the live demo now
+              <a className="s-btn lp-btn-ghost" href="/how-it-works">
+                See how it works
               </a>
             </div>
           </Rise>

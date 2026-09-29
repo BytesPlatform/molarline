@@ -20,7 +20,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <a href="/admin">Customers</a>
           <a href="/admin/leads">Demo requests</a>
           <a href="/app">Open a workspace</a>
-          <a href="/demo">Public demo</a>
+          <a href="/demo">Live demo</a>
           <a href="/">Site</a>
         </nav>
         <span className="admin-who">{session.email}</span>

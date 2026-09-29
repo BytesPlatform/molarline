@@ -1,10 +1,13 @@
 /**
- * Route protection. /app and /admin need a Clerk session; everything else,
- * including the public demo at / and the Retell webhooks, stays open.
+ * Route protection. /app, /admin and the live demo at /demo need a Clerk
+ * session; the marketing site, the lead form and the signed webhooks stay
+ * open. The demo's browser APIs (/api/config, /api/state, /api/reset) are
+ * behind the same session so the Retell key and agent id are never handed
+ * to an anonymous visitor.
  *
  * Without Clerk keys the proxy does nothing and the product pages guard
- * themselves (see lib/auth.ts), so the public demo keeps deploying before
- * the Clerk application exists.
+ * themselves (see lib/auth.ts), so the demo keeps deploying before the
+ * Clerk application exists.
  */
 
 import { NextResponse, type NextRequest } from "next/server";
@@ -17,7 +20,9 @@ const LEGACY_HOSTS: Record<string, string> = {
   "dental-ai-receptionist-eta.vercel.app": "https://molarline.vercel.app",
 };
 
-const isProtected = (request: NextRequest) => /^\/(app|admin)(\/|$)/.test(request.nextUrl.pathname);
+const isProtected = (request: NextRequest) =>
+  /^\/(app|admin|demo)(\/|$)/.test(request.nextUrl.pathname) ||
+  /^\/api\/(config|state|reset|lead|redact)(\/|$)/.test(request.nextUrl.pathname);
 
 const withClerk = clerkMiddleware(async (auth, request) => {
   if (isProtected(request)) await auth.protect();

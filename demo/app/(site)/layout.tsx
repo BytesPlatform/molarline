@@ -32,7 +32,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
             <a href="/how-it-works">How it works</a>
             <a href="/pricing">Pricing</a>
             <a href="/security">Security</a>
-            <a href="/demo">Live demo</a>
+            <a href="/sign-in">Log in</a>
             <a className="s-btn s-btn-primary" href="/book-a-demo">
               Book a demo
             </a>

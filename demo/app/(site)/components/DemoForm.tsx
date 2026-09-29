@@ -57,13 +57,8 @@ export default function DemoForm({
       <div className="s-form-done" role="status">
         <h3>Thanks. We will call you within one business day.</h3>
         <p className="s-p" style={{ margin: 0 }}>
-          A confirmation is on its way to your inbox with a recorded call to listen to in the meantime. If you would rather
-          try it yourself right now, the live demo is one click away.
-        </p>
-        <p style={{ margin: "0.9rem 0 0" }}>
-          <a className="s-btn" href="/demo">
-            Try the live demo
-          </a>
+          A confirmation is on its way to your inbox with a recorded call to listen to in the meantime. On the demo call
+          you speak to the assistant yourself, set up on your own details.
         </p>
       </div>
     );

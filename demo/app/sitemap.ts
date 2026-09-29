@@ -5,7 +5,6 @@ const SITE_URL = "https://molarline.vercel.app";
 export default function sitemap(): MetadataRoute.Sitemap {
   const pages: [string, number][] = [
     ["/", 1],
-    ["/demo", 0.9],
     ["/book-a-demo", 0.9],
     ["/how-it-works", 0.8],
     ["/pricing", 0.8],

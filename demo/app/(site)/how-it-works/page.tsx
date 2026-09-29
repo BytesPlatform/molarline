@@ -45,8 +45,8 @@ export default function HowItWorks() {
             <a className="s-btn s-btn-primary" href="/book-a-demo">
               Book a demo
             </a>
-            <a className="s-btn" href="/demo">
-              Try the live demo
+            <a className="s-btn" href="/#hear-it">
+              Hear a recorded call
             </a>
           </div>
         </div>
