@@ -1947,3 +1947,43 @@ button { font: inherit; color: inherit; }
 .admin-danger { border-color: rgba(255, 77, 109, 0.35); }
 .admin-field textarea { resize: vertical; font-family: var(--font-ui); }
 .admin-clamp { max-width: 22rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------------------------------------------------------------------
+   Onboarding and Settings (phase 2).
+   --------------------------------------------------------------------- */
+.setup { position: relative; z-index: 1; min-height: 100vh; display: grid; grid-template-columns: 19rem minmax(0, 1fr); background: var(--bg-app); color: var(--text); }
+@media (max-width: 900px) { .setup { grid-template-columns: 1fr; } .setup-side { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); } }
+.setup-side { position: sticky; top: 0; align-self: start; height: 100vh; overflow: auto; padding: 1.25rem 1.1rem; border-right: 1px solid var(--line); background: var(--bg-surface); display: grid; align-content: start; gap: 0.9rem; }
+.setup-settings .setup-side { height: auto; }
+.setup-brand { font: 700 var(--fs-title) var(--font-display); color: var(--text); text-decoration: none; }
+.setup-progress { height: 0.4rem; background: var(--bg-inset); border-radius: 999px; overflow: hidden; }
+.setup-progress-bar { height: 100%; background: var(--accent-gradient); transition: width 0.3s ease; }
+.setup-progress-text { margin: 0; color: var(--text-3); font-size: var(--fs-tiny); }
+.setup-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.2rem; }
+.setup-steps li a, .setup-step-link { display: grid; grid-template-columns: 1.6rem 1fr; gap: 0.6rem; align-items: start; padding: 0.5rem 0.55rem; border-radius: 0.6rem; text-decoration: none; color: var(--text-2); }
+.setup-steps li a:hover { background: var(--bg-raised); color: var(--text); }
+.setup-steps li.is-current a { background: var(--accent-soft); color: var(--text); }
+.setup-steps li.is-locked { opacity: 0.45; }
+.setup-step-n { width: 1.6rem; height: 1.6rem; border-radius: 999px; display: grid; place-items: center; background: var(--bg-inset); font-size: var(--fs-micro); font-weight: 700; }
+.setup-steps li.is-done .setup-step-n { background: rgba(74, 222, 128, 0.16); color: #16a34a; }
+.setup-steps li.is-current .setup-step-n { background: var(--accent); color: #fff; }
+.setup-step-title { display: block; font-size: var(--fs-small); font-weight: 600; }
+.setup-step-blurb { display: block; font-size: var(--fs-micro); color: var(--text-3); line-height: 1.35; }
+.setup-help { margin: auto 0 0; font-size: var(--fs-micro); color: var(--text-3); }
+.setup-help a { color: var(--accent); }
+.setup-main { max-width: 56rem; padding: 2rem 1.5rem 4rem; display: grid; gap: 1rem; align-content: start; }
+.setup-kicker { margin: 0; color: var(--accent); font-size: var(--fs-micro); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.setup-lead { margin-bottom: 0.5rem; }
+.setup-stack { display: grid; gap: 1rem; }
+.setup-hours td { padding: 0.35rem 0.5rem; }
+.setup-hours input[type=time] { padding: 0.35rem 0.5rem; border: 1px solid var(--line-2); border-radius: 0.5rem; background: var(--bg-inset); color: var(--text); font: 500 var(--fs-small) var(--font-ui); }
+.setup-steps-list { margin: 0.5rem 0 0; padding-left: 1.2rem; color: var(--text-2); font-size: var(--fs-small); display: grid; gap: 0.35rem; }
+.setup-list { color: var(--text-2); font-size: var(--fs-small); display: grid; gap: 0.4rem; margin: 0; padding-left: 1.2rem; }
+.setup-test { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+@media (max-width: 1000px) { .setup-test { grid-template-columns: 1fr; } }
+.setup-test-call .panel { min-height: 28rem; }
+.setup-checklist { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.45rem; }
+.setup-checklist li { display: grid; grid-template-columns: 1.5rem 1fr; gap: 0.6rem; align-items: center; color: var(--text-3); font-size: var(--fs-small); }
+.setup-checklist li.is-done { color: var(--text); }
+.setup-tick { width: 1.5rem; height: 1.5rem; border-radius: 999px; border: 1px solid var(--line-2); display: grid; place-items: center; font-size: var(--fs-micro); font-weight: 700; }
+.setup-checklist li.is-done .setup-tick { background: #16a34a; border-color: transparent; color: #fff; }

@@ -42,6 +42,9 @@ export default function AccountChip({ account }: { account: Account }) {
           {account.viewingAs ? `Viewing ${account.tenantName}` : account.tenantName}
         </span>
       </span>
+      <a className="account-admin" href="/app/settings" title="Settings">
+        Settings
+      </a>
       {account.admin ? (
         <a className="account-admin" href="/admin" title="Admin console">
           Admin

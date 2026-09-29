@@ -10,6 +10,7 @@ import { redirect } from "next/navigation";
 import { TENANT_COOKIE, requestOrigin, requirePlatformAdmin, sendInvitation } from "@/lib/auth";
 import { resetTenant } from "@/lib/db";
 import { retryJob, runDueJobs } from "@/lib/jobs";
+import { provisionAgent } from "@/lib/provision";
 import { convertLead, setLeadNotes, setLeadStatus, type LeadStatus } from "@/lib/leads";
 import {
   addMembership,
@@ -175,6 +176,7 @@ export async function convertLeadAction(form: FormData): Promise<void> {
 export async function runJobsNowAction(): Promise<void> {
   await requirePlatformAdmin();
   await import("@/lib/leads");
+  await import("@/lib/onboarding");
   const report = await runDueJobs();
   back("/admin/leads", `Ran ${report.claimed} due job${report.claimed === 1 ? "" : "s"}: ${report.done} done, ${report.retried} retried, ${report.failed} failed.`);
 }
@@ -183,4 +185,16 @@ export async function retryJobAction(form: FormData): Promise<void> {
   await requirePlatformAdmin();
   await retryJob(Number(text(form, "id")));
   back("/admin/jobs", "Job queued again.");
+}
+
+export async function provisionTenantAction(form: FormData): Promise<void> {
+  await requirePlatformAdmin();
+  const id = text(form, "id");
+  try {
+    const r = await provisionAgent(id);
+    back(`/admin/tenants/${id}`, `Assistant published: agent ${r.agentId}, flow ${r.flowId}${r.version !== null ? `, version ${r.version}` : ""}.`);
+  } catch (err) {
+    if ((err as { digest?: string })?.digest?.startsWith("NEXT_REDIRECT")) throw err;
+    back(`/admin/tenants/${id}`, err instanceof Error ? err.message : "Could not publish.", "error");
+  }
 }

@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 import { getTenant, listMemberships } from "@/lib/tenancy";
+import { ONBOARDING_STEPS, configOf, readiness } from "@/lib/tenant-config";
 import {
   clearWorkspaceAction,
   inviteMemberAction,
   openWorkspaceAction,
+  provisionTenantAction,
   removeMemberAction,
   resendInviteAction,
   setStatusAction,
@@ -27,6 +29,8 @@ export default async function TenantPage({
   const tenant = await getTenant(id);
   if (!tenant) notFound();
   const members = await listMemberships(id);
+  const c = configOf(tenant);
+  const ready = readiness(c);
 
   return (
     <>
@@ -51,6 +55,30 @@ export default async function TenantPage({
           </form>
         </div>
       </div>
+
+      <section className="admin-section">
+        <h2 className="admin-title-sm">Setup and assistant</h2>
+        <p className="admin-help">
+          {c.onboarding.completedAt
+            ? `Setup complete ${WHEN.format(new Date(c.onboarding.completedAt))}.`
+            : c.onboarding.startedAt
+              ? `Setup in progress: ${Math.min(c.onboarding.step, ONBOARDING_STEPS.length)} of ${ONBOARDING_STEPS.length} steps, started ${WHEN.format(new Date(c.onboarding.startedAt))}.`
+              : "The owner has not opened the setup yet."}{" "}
+          {c.agent.agentId
+            ? `Assistant ${c.agent.agentId}${c.agent.publishedAt ? `, published ${WHEN.format(new Date(c.agent.publishedAt))}` : ""}.`
+            : "No assistant published yet."}{" "}
+          {c.phone.number ? `Number ${c.phone.number}.` : "No number yet."}
+        </p>
+        {!ready.ok ? <p className="admin-sub">Not ready to publish: missing {ready.missing.join(", ")}.</p> : null}
+        <div className="admin-actions">
+          <form action={provisionTenantAction}>
+            <input type="hidden" name="id" value={tenant.id} />
+            <button className="btn btn-quiet" type="submit" disabled={!ready.ok}>
+              {c.agent.agentId ? "Publish the assistant again" : "Publish the assistant"}
+            </button>
+          </form>
+        </div>
+      </section>
 
       <section className="admin-grid">
         <div className="admin-section">

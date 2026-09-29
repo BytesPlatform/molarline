@@ -9,6 +9,7 @@ import { timingSafeEqual } from "node:crypto";
 import { runDueJobs } from "@/lib/jobs";
 // Registers the handlers. Nothing else imports leads on this path.
 import "@/lib/leads";
+import "@/lib/onboarding";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

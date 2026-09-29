@@ -17,6 +17,8 @@ import { DEMO_TENANT_ID, addMembership, createTenant, getTenant, membershipsForU
 import { runTool } from "../lib/tools";
 import { createLead, getLead, setLeadStatus } from "../lib/leads";
 import { runDueJobs } from "../lib/jobs";
+import { configOf, defaultConfig, mergeConfig, readiness, resolveOfficeFor } from "../lib/tenant-config";
+import { renderFlow, renderGlobalPrompt } from "../lib/provision";
 import type { ToolRequest } from "../lib/retell";
 
 const CALL_ID = "call_smoke_001";
@@ -42,6 +44,35 @@ async function main() {
   await withTenant(demo, scenes);
   await isolation();
   await landingSite();
+  await onboardingConfig();
+}
+
+/** The practice configuration: defaults, merge, office lookup, and what the agent is rendered from. */
+async function onboardingConfig() {
+  heading("onboarding: configuration and agent rendering");
+  const acme = await createTenant({ name: "Acme Family Dentistry", mainNumber: "(555) 010-0100" });
+  const base = configOf(acme);
+  if (base.offices.length !== 2 || base.providers.length !== 4 || base.appointmentTypes.length !== 4) throw new Error("a new tenant must start on the product defaults");
+  if (!readiness(base).ok) throw new Error("the defaults must be publishable as they are");
+  const patched = mergeConfig(defaultConfig(), {
+    offices: [{ id: "main", name: "Main Street", address: "1 Main St", phone: "(555) 010-0100", hours: "Monday to Friday 8 to 5", parking: "" }],
+    providers: [{ id: "prov_lee", name: "Dr. Lee", title: "General dentistry", tone: "teal", locationId: "main" }],
+    appointmentTypes: [{ id: "hygiene", name: "Cleaning and exam", minutes: 60, providerIds: ["prov_lee"] }],
+    insurance: ["Delta Dental"],
+    behaviour: { greeting: "Thanks for calling Acme. You're speaking with our automated assistant and this call is recorded. How can I help?" },
+  });
+  if (resolveOfficeFor(patched, "the main street office") !== "main") throw new Error("office lookup must match the office name");
+  if (patched.offices.length !== 1) throw new Error("arrays are replaced whole");
+  const prompt = renderGlobalPrompt(acme, patched);
+  if (!prompt.includes("1. Main Street. 1 Main St.") || !prompt.includes("Dr. Lee (general dentistry, Main Street)") || !prompt.includes("Cleaning and exam, 60 minutes, with Dr. Lee") || prompt.includes("Riverside") || prompt.includes("demonstration system")) {
+    throw new Error("the prompt must carry the practice's facts and none of the demo's");
+  }
+  const flow = renderFlow(acme, patched) as { nodes: { id: string; instruction?: { text: string } }[]; default_dynamic_variables: Record<string, string>; tools: { url?: string }[] };
+  const opening = flow.nodes.find((n) => n.id === "n_opening");
+  if (opening?.instruction?.text !== patched.behaviour.greeting) throw new Error("the opening line must be the practice's greeting");
+  if (flow.default_dynamic_variables.practice_name !== "Acme Family Dentistry") throw new Error("dynamic variables must carry the tenant");
+  if (flow.tools.some((t) => t.url && t.url.includes("<DEMO_HOST>"))) throw new Error("tool urls must point at the site");
+  console.log("config merge, office lookup and rendering hold");
 }
 
 /**

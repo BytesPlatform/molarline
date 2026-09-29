@@ -12,16 +12,10 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { databaseWarning, q } from "@/lib/db";
-import {
-  APPOINTMENT_TYPES,
-  DAY_END_HOUR,
-  DAY_START_HOUR,
-  LOCATIONS,
-  OPERATORIES,
-  PROVIDERS,
-} from "@/lib/config";
+import { DAY_END_HOUR, DAY_START_HOUR } from "@/lib/config";
+import { cfg, onboardingComplete, operatoriesFor } from "@/lib/tenant-config";
 import { tenantForRequest } from "@/lib/scope";
-import { tenantId, withTenant, type Tenant } from "@/lib/tenancy";
+import { DEMO_TENANT_ID, tenantId, withTenant, type Tenant } from "@/lib/tenancy";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,11 +44,12 @@ export async function GET(request: NextRequest) {
 async function readState(request: NextRequest, tenant: Tenant) {
   const params = request.nextUrl.searchParams;
   const t = tenantId();
+  const c = cfg();
   const sinceAudit = num(params.get("audit"));
   const sincePipeline = num(params.get("pipeline"));
   const sinceConsent = num(params.get("consent"));
   const sinceQueue = num(params.get("queue"));
-  const locationId = params.get("location") ?? LOCATIONS[0].id;
+  const locationId = params.get("location") ?? c.offices[0]?.id ?? "downtown";
   const dayOffset = num(params.get("day"), 0);
 
   const from = new Date();
@@ -122,15 +117,16 @@ async function readState(request: NextRequest, tenant: Tenant) {
       date: from.toISOString(),
       startHour: DAY_START_HOUR,
       endHour: DAY_END_HOUR,
-      locations: LOCATIONS.map((l) => ({ id: l.id, name: l.name, hours: l.hours })),
-      providers: PROVIDERS.filter((p) => p.locationId === locationId).map((p) => ({
+      locations: c.offices.map((l) => ({ id: l.id, name: l.name, hours: l.hours })),
+      providers: c.providers.filter((p) => p.locationId === locationId).map((p) => ({
         id: p.id,
         name: p.name,
         title: p.title,
         tone: p.tone,
       })),
-      operatories: OPERATORIES.filter((o) => o.locationId === locationId),
-      types: APPOINTMENT_TYPES.map((t) => ({ id: t.id, name: t.name, minutes: t.minutes })),
+      operatories: operatoriesFor(c).filter((o) => o.locationId === locationId),
+      types: c.appointmentTypes.map((t) => ({ id: t.id, name: t.name, minutes: t.minutes })),
+      onboarded: tenant.id === DEMO_TENANT_ID || onboardingComplete(c),
     },
     appointments,
     pipeline,

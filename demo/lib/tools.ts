@@ -15,13 +15,13 @@ import { q } from "./db";
 import { tenantId } from "./tenancy";
 import {
   APPOINTMENT_TYPES,
-  LOCATIONS,
-  OPERATORIES,
-  PROVIDERS,
-  appointmentTypeById,
-  providerById,
 } from "./config";
 import { logAccess, logConsent, logPipeline, queueRequest, touchCall } from "./audit";
+import { appointmentTypeByIdFor, cfg, operatoriesFor, providerByIdFor, resolveOfficeFor } from "./tenant-config";
+
+// The practice's own configuration, read at call time. The demo tenant runs on the defaults in config.ts.
+const providerById = (id: string) => providerByIdFor(cfg(), id);
+const appointmentTypeById = (id: string) => appointmentTypeByIdFor(cfg(), id);
 import { nameMatches, nameTokens, parseDob } from "./identity";
 import { patientRef, phoneHash, type ToolRequest } from "./retell";
 
@@ -51,9 +51,7 @@ function decodeSlot(id: string) {
 }
 
 function resolveLocation(raw: unknown): string {
-  const text = String(raw ?? "").toLowerCase();
-  const hit = LOCATIONS.find((l) => text.includes(l.id) || text.includes(l.name.toLowerCase()));
-  return hit?.id ?? LOCATIONS[0].id;
+  return resolveOfficeFor(cfg(), raw);
 }
 
 /** ---------------------------------------------------------------- 1 */
@@ -109,11 +107,11 @@ async function getSlots(req: ToolRequest): Promise<ToolResponse> {
   const started = Date.now();
   const locationId = resolveLocation(req.args.location ?? req.call.retell_llm_dynamic_variables?.location);
   const typeId = String(req.args.appointment_type ?? "hygiene");
-  const type = appointmentTypeById(typeId) ?? APPOINTMENT_TYPES[0];
+  const type = appointmentTypeById(typeId) ?? cfg().appointmentTypes[0] ?? APPOINTMENT_TYPES[0];
   const preference = String(req.args.time_preference ?? "any").toLowerCase();
   const providerPref = String(req.args.provider ?? "any").toLowerCase();
 
-  const candidates = PROVIDERS.filter(
+  const candidates = cfg().providers.filter(
     (p) =>
       p.locationId === locationId &&
       type.providerIds.includes(p.id) &&
@@ -157,7 +155,7 @@ async function getSlots(req: ToolRequest): Promise<ToolResponse> {
         if (end.getHours() >= 17) continue;
 
         for (const provider of candidates) {
-          const ops = OPERATORIES.filter((o) => o.locationId === locationId);
+          const ops = operatoriesFor(cfg()).filter((o) => o.locationId === locationId);
           const op = ops.find(
             (o) =>
               !taken.some(
@@ -209,10 +207,10 @@ async function bookAppointment(req: ToolRequest): Promise<ToolResponse> {
     return fallbackToQueue(req, "pms_error", { slot_id: req.args.slot_id });
   }
 
-  const type = appointmentTypeById(slot.typeId) ?? APPOINTMENT_TYPES[0];
+  const type = appointmentTypeById(slot.typeId) ?? cfg().appointmentTypes[0] ?? APPOINTMENT_TYPES[0];
   const end = new Date(slot.start.getTime() + type.minutes * 60_000);
   const provider = providerById(slot.providerId);
-  const locationId = provider?.locationId ?? LOCATIONS[0].id;
+  const locationId = provider?.locationId ?? cfg().offices[0]?.id ?? "downtown";
 
   const clash = await q<{ id: string }>(
     `select id from demo_appointments
