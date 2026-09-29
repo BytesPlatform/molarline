@@ -2127,3 +2127,13 @@ button { font: inherit; color: inherit; }
    publish and save are ordinary buttons */
 .setup .btn-cta { display: inline-flex; width: auto; text-transform: none; letter-spacing: 0.01em; font-size: var(--fs-small); padding: 0.6rem 1.3rem; animation: none; }
 .setup .btn-cta:hover { transform: none; }
+
+/* The dashboard puts rows straight into the panel body, so the body needs
+   the same inset the head has. The demo desk's panels bring their own
+   padding, so this stays scoped to the dashboard. */
+.dash .panel-head { padding: 0.95rem 1.15rem 0.8rem; }
+.dash .panel-body { padding: 0.5rem 1.15rem 1.1rem; }
+.dash .panel-body > .empty { padding: 0.5rem 0 0.75rem; }
+/* the day board draws its own grid to the edges */
+.dash .dash-board .panel-body { padding: 0; }
+.notice-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; justify-content: center; margin-top: 1.1rem; }

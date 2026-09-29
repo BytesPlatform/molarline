@@ -1,3 +1,7 @@
+import { authConfigured } from "@/lib/auth";
+import SignOutLink from "@/app/components/SignOutLink";
+import { PRODUCT } from "@/lib/product";
+
 export const dynamic = "force-dynamic";
 
 export default function Suspended() {
@@ -9,6 +13,12 @@ export default function Suspended() {
           The account has been suspended. Calls are no longer answered by the assistant. Contact our team to
           reactivate it.
         </p>
+        <div className="notice-actions">
+          <a className="btn btn-quiet" href={`mailto:${PRODUCT.salesInbox}?subject=${encodeURIComponent("Reactivate my workspace")}`}>
+            Email us
+          </a>
+          {authConfigured() ? <SignOutLink label="Sign out" /> : null}
+        </div>
       </div>
     </main>
   );

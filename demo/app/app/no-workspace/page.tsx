@@ -1,6 +1,7 @@
-import { requireSession } from "@/lib/auth";
-import { resolveTenant } from "@/lib/auth";
+import { authConfigured, requireSession, resolveTenant } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import SignOutLink from "@/app/components/SignOutLink";
+import { PRODUCT } from "@/lib/product";
 
 export const dynamic = "force-dynamic";
 
@@ -17,9 +18,12 @@ export default async function NoWorkspace() {
           workspace. Invitations are sent by our team after a setup call; if you were expecting one, reply to the
           invitation email or contact the person who set you up.
         </p>
-        <a className="btn btn-quiet" href="/demo">
-          Back to the demo
-        </a>
+        <div className="notice-actions">
+          {authConfigured() ? <SignOutLink label="Sign out" /> : null}
+          <a className="btn btn-quiet" href={`mailto:${PRODUCT.salesInbox}?subject=${encodeURIComponent("Access to my workspace")}`}>
+            Email us
+          </a>
+        </div>
       </div>
     </main>
   );
