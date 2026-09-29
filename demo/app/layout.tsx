@@ -71,7 +71,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   // builds and deploys before the Clerk application is created.
   const body = clerkConfigured ? <ClerkProvider afterSignOutUrl="/">{children}</ClerkProvider> : children;
   return (
-    <html lang="en">
+    // suppressHydrationWarning: the dashboard's theme script sets data-theme before hydration.
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/*
           Fonts are linked rather than bundled so a build never depends on

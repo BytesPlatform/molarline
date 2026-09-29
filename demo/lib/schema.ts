@@ -157,7 +157,9 @@ create table if not exists demo_calls (
   channel     text not null default 'web',   -- web or phone
   outcome     text,
   flagged     boolean not null default false,
-  summary     text
+  summary     text,
+  transcript  text,
+  recording_url text
 );
 
 -- ---------- platform: prospects, email, jobs ----------
@@ -234,6 +236,10 @@ alter table booking_queue add column if not exists tenant_id text not null defau
 alter table suppression_list add column if not exists tenant_id text not null default 'demo';
 alter table pipeline_events add column if not exists tenant_id text not null default 'demo';
 alter table demo_calls add column if not exists tenant_id text not null default 'demo';
+alter table demo_calls add column if not exists transcript text;
+alter table demo_calls add column if not exists recording_url text;
+alter table demo_calls add column if not exists transcript text;
+alter table demo_calls add column if not exists recording_url text;
 do $$ begin
   -- The suppression list used to be keyed by phone hash alone. Re-key it per
   -- tenant so one office's opt-out never silences a caller at another.

@@ -9,7 +9,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { closeCall, flagCall, logAccess, logConsent, logPipeline, touchCall } from "@/lib/audit";
+import { closeCall, flagCall, logAccess, logConsent, logPipeline, saveCallMedia, touchCall } from "@/lib/audit";
+import { redact } from "@/lib/redact";
 import { phoneHash, signatureRequired, verifyRetellSignature } from "@/lib/retell";
 import { tenantByAgentId, withTenant } from "@/lib/tenancy";
 
@@ -23,6 +24,8 @@ type RetellCall = {
   to_number?: string;
   call_type?: string;
   disconnection_reason?: string;
+  transcript?: string;
+  recording_url?: string;
   call_analysis?: {
     call_summary?: string;
     user_sentiment?: string;
@@ -89,6 +92,11 @@ export async function POST(request: NextRequest) {
       detail: { channel },
     });
     await closeCall(callId, call.disconnection_reason ?? "ended");
+    // Stored redacted: the dashboard shows what would be kept, never raw PHI.
+    await saveCallMedia(callId, {
+      transcript: call.transcript ? redact(call.transcript).text : null,
+      recordingUrl: call.recording_url,
+    });
     return NextResponse.json({ received: true });
   }
 
@@ -98,6 +106,10 @@ export async function POST(request: NextRequest) {
     const outcome = String(custom.outcome ?? (analysis.call_successful ? "completed" : "incomplete"));
 
     await closeCall(callId, outcome, analysis.call_summary);
+    await saveCallMedia(callId, {
+      transcript: call.transcript ? redact(call.transcript).text : null,
+      recordingUrl: call.recording_url,
+    });
 
     if (custom.phi_beyond_scheduling_mentioned === true) {
       await flagCall(callId, "Caller raised a clinical or billing topic. Agent declined and offered a transfer.");

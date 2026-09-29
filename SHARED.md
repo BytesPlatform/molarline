@@ -25,7 +25,8 @@ repo carries, so a fix made in one can be diffed into the others.
 | `demo/app/admin/leads/**`, `demo/app/admin/jobs/**` | demo requests and job log in the console | 0.1 (2026-09-28) | hvac |
 | `demo/lib/onboarding.ts`, `demo/emails/Onboarding.tsx` | onboarding state, welcome and nudge emails, go-live sequence | 0.1 (2026-09-28), copied from hvac | hvac |
 | `demo/lib/provision.ts` | render flow and agent from the tenant, create/update/publish on Retell, buy a number | product-specific facts renderer | hvac |
-| `demo/app/app/setup/**`, `demo/app/app/settings/**` | the eight onboarding steps and Settings; forms, actions and the test checklist are product-specific | 0.1 (2026-09-28) | hvac |
+| `demo/app/app/setup/**`, `demo/app/app/settings/**` | the eight onboarding steps and Settings; forms, actions and the test checklist are product-specific. Settings gained Messaging, Team and Plan/billing (0.2, 2026-09-29) | 0.2 (2026-09-29) | hvac |
+| `demo/app/app/{layout,shared,fmt,home-actions}.ts(x)`, `demo/app/app/{page,calls/page}.tsx`, `demo/app/components/dash/Shell.tsx`, the dash-* block in `app/globals.css` | the phase-3 customer dashboard shell, Home and Calls; shared verbatim. `lib/dash.ts`, `lib/dash-examples.ts`, `app/app/schedule/**` and `app/app/advanced/page.tsx` are product-specific (different tables, numbers and boards) | 0.1 (2026-09-29) | hvac |
 | `demo/app/(site)/**` | the marketing site shell, components and stylesheet; page copy is product-specific. Landing v3 (motion.tsx, components/home/Hero.tsx + CallCard.tsx, the lp-* layer in site.css, public/landing/hero.jpg is product-specific art, headlineParts in lib/product.ts) | 0.3 (2026-09-29) | hvac |
 
 Product-specific by design: `lib/tenant-config.ts` and `lib/stats.ts` (what onboarding collects and what the weekly report counts), `lib/product.ts`, `lib/recordings.ts`, the copy inside `app/(site)/*/page.tsx`, `lib/config.ts`, `lib/tools.ts`, `lib/schema.ts`

@@ -1987,3 +1987,129 @@ button { font: inherit; color: inherit; }
 .setup-checklist li.is-done { color: var(--text); }
 .setup-tick { width: 1.5rem; height: 1.5rem; border-radius: 999px; border: 1px solid var(--line-2); display: grid; place-items: center; font-size: var(--fs-micro); font-weight: 700; }
 .setup-checklist li.is-done .setup-tick { background: #16a34a; border-color: transparent; color: #fff; }
+
+/* =====================================================================
+   The customer dashboard (phase 3). Four pages in one frame, light by
+   default with the dark toggle, everything from the same tokens.
+   Namespaced dash-* / stat-* / need-* / callrow-* / visit-card so the
+   demo desk keeps its own shell untouched.
+   ===================================================================== */
+
+.dash { --dash-side: 14.5rem; display: grid; grid-template-columns: var(--dash-side) 1fr; min-height: 100vh; background: var(--bg-app); color: var(--text); }
+.dash-side { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 1.1rem; padding: 1.1rem 0.9rem; border-right: 1px solid var(--line); background: var(--bg-surface); }
+.dash-brand { display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; color: var(--text); font: 700 var(--fs-title) var(--font-display); padding: 0.2rem 0.35rem; }
+.dash-nav { display: grid; gap: 0.25rem; }
+.dash-nav-item { display: flex; align-items: center; gap: 0.7rem; padding: 0.6rem 0.75rem; border-radius: var(--r-md); text-decoration: none; color: var(--text-2); font-weight: 600; font-size: var(--fs-small); transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease); }
+.dash-nav-item:hover { background: var(--bg-raised); color: var(--text); }
+.dash-nav-item.is-active { background: var(--accent); color: var(--on-accent); box-shadow: var(--shadow-accent); }
+.dash-nav-icon { width: 1.15rem; height: 1.15rem; display: grid; place-items: center; }
+.dash-nav-icon svg { width: 100%; height: 100%; }
+.dash-side-foot { margin-top: auto; }
+.dash-stage { min-width: 0; display: flex; flex-direction: column; }
+.dash-top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 1rem; padding: 0.9rem 1.4rem; border-bottom: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(12px); }
+.dash-greet { display: grid; line-height: 1.3; }
+.dash-greet-title { font: 700 var(--fs-title) var(--font-display); }
+.dash-greet-sub { color: var(--text-3); font-size: var(--fs-tiny); }
+.dash-top-end { margin-left: auto; display: flex; align-items: center; gap: 0.6rem; }
+.dash-main { padding: 1.4rem; display: grid; gap: var(--gap); align-content: start; }
+.dash-example-note { margin: 0; padding: 0.7rem 1rem; border: 1px dashed var(--line-2); border-radius: var(--r-md); color: var(--text-2); font-size: var(--fs-small); background: var(--bg-surface); }
+.dash-cols { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: var(--gap); align-items: start; }
+.dash-col { display: grid; gap: var(--gap); min-width: 0; }
+@media (max-width: 1000px) { .dash-cols { grid-template-columns: 1fr; } }
+.dash .btn-cta { font-size: var(--fs-small); text-transform: none; letter-spacing: 0.01em; padding: 0.55rem 1.05rem; animation: none; width: auto; }
+.dash .btn-cta:hover { transform: none; }
+@media (max-width: 820px) {
+  .dash { grid-template-columns: 1fr; }
+  .dash-side { position: static; height: auto; flex-direction: row; align-items: center; }
+  .dash-nav { display: flex; }
+  .dash-brand-name, .dash-side-foot { display: none; }
+}
+
+/* the three numbers */
+.stat-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); }
+@media (max-width: 720px) { .stat-row { grid-template-columns: 1fr; } }
+.stat { padding: 1rem 1.2rem; display: grid; gap: 0.15rem; }
+.stat-label { color: var(--text-3); font-size: var(--fs-tiny); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+.stat-n { font: 700 2.1rem/1.1 var(--font-display); letter-spacing: -0.02em; }
+.stat-delta { color: var(--text-3); font-size: var(--fs-tiny); }
+.stat-delta.is-up { color: var(--ok); }
+.stat-delta.is-down { color: var(--warn); }
+
+/* needs-you rows */
+.need { display: flex; align-items: flex-start; gap: 0.8rem; padding: 0.7rem 0; border-top: 1px solid var(--line); }
+.need:first-child { border-top: 0; }
+.need-main { display: grid; gap: 0.15rem; min-width: 0; flex: 1; }
+.need-title { font-weight: 700; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.need-detail { color: var(--text-2); font-size: var(--fs-small); }
+.need-when { color: var(--text-3); font-size: var(--fs-tiny); }
+.need-example { opacity: 0.8; }
+.need form { flex: 0 0 auto; }
+
+/* call rows */
+.callrow { display: flex; align-items: flex-start; gap: 0.9rem; padding: 0.7rem 0; border-top: 1px solid var(--line); }
+.callrow:first-child { border-top: 0; }
+.callrow.is-focus { background: var(--accent-softer); border-radius: var(--r-md); padding-left: 0.6rem; padding-right: 0.6rem; }
+.callrow-time { flex: 0 0 auto; color: var(--text-3); font-size: var(--fs-tiny); padding-top: 0.15rem; white-space: nowrap; }
+.callrow-main { display: grid; gap: 0.3rem; min-width: 0; flex: 1; }
+.callrow-summary { font-size: var(--fs-small); }
+.callrow-meta { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+/* urgency tags share the demo's urgency colours */
+.urg-emergency { background: var(--u-emergency-soft); color: var(--u-emergency); }
+.urg-urgent { background: var(--u-urgent-soft); color: var(--u-urgent); }
+.urg-routine { background: var(--u-routine-soft); color: var(--u-routine); }
+.urg-quote { background: var(--u-quote-soft); color: var(--u-quote); }
+
+/* the receptionist card */
+.dot-ok { display: inline-block; width: 0.5rem; height: 0.5rem; border-radius: 999px; background: var(--ok); box-shadow: 0 0 0 3px var(--ok-soft); margin-right: 0.3rem; }
+.agent-rows { display: grid; gap: 0.55rem; }
+.agent-row { display: flex; justify-content: space-between; gap: 1rem; font-size: var(--fs-small); color: var(--text-2); }
+.agent-row b { color: var(--text); font-weight: 600; overflow-wrap: anywhere; text-align: right; }
+.agent-test { margin-top: 0.9rem; width: 100%; justify-content: center; display: inline-flex; }
+
+/* upcoming visit cards */
+.visit-card { display: grid; gap: 0.15rem; padding: 0.65rem 0.9rem; border: 1px solid var(--line); border-left-width: 3px; border-radius: var(--r-md); margin-bottom: 0.55rem; background: var(--bg-raised); }
+.visit-card:last-child { margin-bottom: 0; }
+.urg-line-emergency { border-left-color: var(--u-emergency); }
+.urg-line-urgent { border-left-color: var(--u-urgent); }
+.urg-line-routine { border-left-color: var(--u-routine); }
+.urg-line-quote { border-left-color: var(--u-quote); }
+.visit-card-when { color: var(--text-3); font-size: var(--fs-tiny); }
+.visit-card-title { font-weight: 700; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.visit-card-meta { color: var(--text-2); font-size: var(--fs-tiny); }
+
+/* one call, opened */
+.call-summary { color: var(--text-2); margin: 0.5rem 0 0.9rem; max-width: 70ch; }
+.call-audio { width: 100%; margin: 0.4rem 0 0.8rem; }
+.call-details { border-top: 1px solid var(--line); padding: 0.7rem 0; }
+.call-details summary { cursor: pointer; font-weight: 700; font-size: var(--fs-small); }
+.call-transcript { display: grid; gap: 0.4rem; padding: 0.8rem 0 0.2rem; }
+.call-transcript p { margin: 0; font-size: var(--fs-small); color: var(--text-2); }
+.call-transcript b { color: var(--text); margin-right: 0.4rem; }
+.turn-caller b { color: var(--accent); }
+.call-steps { display: grid; gap: 0.45rem; padding-top: 0.7rem; }
+.call-step { margin: 0; font-size: var(--fs-small); color: var(--text-2); }
+.call-step b { color: var(--text); margin-right: 0.35rem; text-transform: capitalize; }
+.step-warn b { color: var(--warn); }
+.step-error b { color: var(--error); }
+.dash-theme { min-width: 4.2rem; }
+
+/* the account chip, resized for the dashboard sidebar foot */
+.dash-side-foot .account { display: grid; grid-template-columns: auto 1fr; gap: 0.3rem 0.55rem; align-items: center; }
+.dash-side-foot .account-text { min-width: 0; }
+.dash-side-foot .account-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+.dash-side-foot .account-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+.dash-side-foot .account-admin { grid-column: 1 / -1; justify-self: start; }
+
+/* small selects in dashboard panel heads */
+.dash-select { padding: 0.45rem 0.7rem; border-radius: var(--r-md); border: 1px solid var(--line-2); background: var(--bg-surface); color: var(--text); font: 600 var(--fs-small) var(--font-ui); }
+
+/* day groups on the callbacks schedule */
+.sched-day { margin-bottom: 1.1rem; }
+.sched-day-title { font: 700 var(--fs-small) var(--font-display); text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); margin: 0 0 0.5rem; }
+.sched-day-title.is-overdue { color: var(--error); }
+/* qualification tags (PI) share the tag slot */
+.urg-qualified { background: var(--ok-soft); color: var(--ok); }
+.urg-review { background: var(--warn-soft); color: var(--warn); }
+.urg-referral { background: var(--cool-soft); color: var(--cool); }
+.urg-disqualified { background: var(--error-soft); color: var(--error); }
