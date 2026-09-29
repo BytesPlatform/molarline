@@ -6,23 +6,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { databaseWarning } from "@/lib/db";
 import { createLead, e164 } from "@/lib/leads";
+import { allowRate } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-/** Five requests per address per ten minutes. In memory, per instance; enough to blunt a script. */
-const WINDOW_MS = 10 * 60_000;
-const LIMIT = 5;
-const hits = new Map<string, number[]>();
-
-function limited(ip: string): boolean {
-  const now = Date.now();
-  const recent = (hits.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
-  recent.push(now);
-  hits.set(ip, recent);
-  if (hits.size > 5000) hits.clear();
-  return recent.length > LIMIT;
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,7 +22,10 @@ export async function POST(request: NextRequest) {
 
 async function handle(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  if (limited(ip)) return NextResponse.json({ error: "too many requests, please try again in a few minutes" }, { status: 429 });
+  // Five requests per address per ten minutes, durable across instances.
+  if (!(await allowRate(`leads:${ip}`, 5, 10))) {
+    return NextResponse.json({ error: "too many requests, please try again in a few minutes" }, { status: 429 });
+  }
 
   const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
 

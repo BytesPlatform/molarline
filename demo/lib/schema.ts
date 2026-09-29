@@ -211,6 +211,15 @@ create table if not exists messages (
 create index if not exists messages_lead on messages (lead_id, id);
 create index if not exists messages_tenant on messages (tenant_id, id);
 
+-- One row per hit on a rate-limited public route. Durable, so the limit
+-- holds across serverless instances; the retention job prunes it.
+create table if not exists rate_limits (
+  id          bigserial primary key,
+  key         text not null,
+  occurred_at timestamptz not null default now()
+);
+create index if not exists rate_limits_key on rate_limits (key, occurred_at);
+
 create table if not exists jobs (
   id          bigserial primary key,
   created_at  timestamptz not null default now(),

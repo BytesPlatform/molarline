@@ -7,6 +7,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { q } from "@/lib/db";
+import { allowRate } from "@/lib/ratelimit";
 import { recordSmsConsent, stopKeyword } from "@/lib/sms";
 import { withTenant, type Tenant } from "@/lib/tenancy";
 import { PRODUCT } from "@/lib/product";
@@ -57,6 +58,8 @@ export async function POST(request: NextRequest) {
   const to = params.To ?? "";
   const body = params.Body ?? "";
   if (!from) return twiml();
+  // A chatty or hostile number gets silence, not a database workout.
+  if (!(await allowRate(`sms:${from}`, 8, 10))) return twiml();
 
   const tenant = await tenantByNumber(to);
   if (!tenant) return twiml();

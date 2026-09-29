@@ -162,6 +162,32 @@ export async function updateTenant(
   await q(`update tenants set ${sets}, updated_at = now() where id = $1`, [id, ...keys.map((k) => patch[k] ?? null)]);
 }
 
+/**
+ * Integration tokens for a tenant, sealed with lib/secretbox before they
+ * touch the database. config.secrets holds only ciphertext.
+ */
+export async function setTenantSecret(id: string, name: string, value: string | null): Promise<void> {
+  const { encryptSecret } = await import("./secretbox");
+  const boxed = value === null ? null : encryptSecret(value);
+  // jsonb_set never creates the intermediate object, so seed it first.
+  await q(
+    `update tenants set config = jsonb_set(
+        case when coalesce(config, '{}'::jsonb) ? 'secrets' then config else coalesce(config, '{}'::jsonb) || '{"secrets":{}}'::jsonb end,
+        array['secrets', $2], $3::jsonb, true),
+        updated_at = now()
+      where id = $1`,
+    [id, name, JSON.stringify(boxed)],
+  );
+}
+
+export async function getTenantSecret(t: Tenant, name: string): Promise<string | null> {
+  const secrets = (t.config as { secrets?: Record<string, string | null> }).secrets ?? {};
+  const boxed = secrets[name];
+  if (!boxed) return null;
+  const { decryptSecret } = await import("./secretbox");
+  return decryptSecret(boxed);
+}
+
 /* ------------------------------------------------------------ memberships */
 
 const MEMBER_COLUMNS = `id, tenant_id, email, name, role, clerk_user_id, clerk_invitation_id, invite_status, invite_error, invited_at, accepted_at`;

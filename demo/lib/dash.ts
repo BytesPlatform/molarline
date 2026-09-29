@@ -297,17 +297,10 @@ export async function markNeedsDone(tenantId: string, kind: string, id: string):
   }
 }
 
-/** This month's answered minutes against the plan, for the billing card. */
+/** This month's billable minutes against the plan, for the billing card.
+ *  Same arithmetic as the admin usage view: per-call rounding, tenant month. */
 export async function monthUsage(tenant: Tenant): Promise<{ minutes: number; included: number; plan: string }> {
-  const c = configOf(tenant);
-  const tz = tenant.timezone || c.basics.timezone;
-  const now = dayStartUtc(tz);
-  const monthStart = new Date(now);
-  monthStart.setUTCDate(1);
-  const [row] = await q<{ seconds: number }>(
-    `select coalesce(sum(extract(epoch from (ended_at - started_at))), 0)::float as seconds
-       from demo_calls where tenant_id = $1 and started_at >= $2 and ended_at is not null`,
-    [tenant.id, monthStart],
-  );
-  return { minutes: Math.ceil((row?.seconds ?? 0) / 60), included: tenant.included_minutes ?? 0, plan: tenant.plan || "trial" };
+  const { tenantUsage } = await import("./usage");
+  const u = await tenantUsage(tenant);
+  return { minutes: u.minutes, included: u.included, plan: u.plan };
 }

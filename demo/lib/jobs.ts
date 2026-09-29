@@ -19,7 +19,8 @@ export type JobKind =
   | "tenant_lifecycle"
   | "daily_summary"
   | "weekly_report"
-  | "visit_reminder";
+  | "visit_reminder"
+  | "retention";
 
 export interface Job {
   id: number;
@@ -102,6 +103,13 @@ export async function runDueJobs(limit = 25): Promise<RunReport> {
       if (job.attempts >= MAX_ATTEMPTS) {
         await q(`update jobs set status = 'failed', finished_at = now(), last_error = $2 where id = $1`, [job.id, message]);
         report.failed += 1;
+        // Our own team hears about a job that ran out of retries.
+        const { alertPlatform } = await import("./alerts");
+        await alertPlatform(`A background job failed: ${job.kind}`, [
+          `Job ${job.id} (${job.kind}) failed after ${job.attempts} attempts.`,
+          `The error: ${message}`,
+          job.tenant_id ? `Tenant: ${job.tenant_id}.` : "",
+        ].filter(Boolean));
       } else {
         // Back off: ten minutes, then an hour.
         const delayMs = job.attempts === 1 ? 10 * 60_000 : 60 * 60_000;
