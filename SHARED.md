@@ -26,7 +26,7 @@ repo carries, so a fix made in one can be diffed into the others.
 | `demo/lib/onboarding.ts`, `demo/emails/Onboarding.tsx` | onboarding state, welcome and nudge emails, go-live sequence | 0.1 (2026-09-28), copied from hvac | hvac |
 | `demo/lib/provision.ts` | render flow and agent from the tenant, create/update/publish on Retell, buy a number | product-specific facts renderer | hvac |
 | `demo/app/app/setup/**`, `demo/app/app/settings/**` | the eight onboarding steps and Settings; forms, actions and the test checklist are product-specific | 0.1 (2026-09-28) | hvac |
-| `demo/app/(site)/**` | the marketing site shell, components and stylesheet; page copy is product-specific | 0.1 (2026-09-28) | hvac |
+| `demo/app/(site)/**` | the marketing site shell, components and stylesheet; page copy is product-specific. Landing v2 (motion.tsx, components/home/Hero.tsx, the lp-* layer in site.css, public/landing/hero.jpg is product-specific art) | 0.2 (2026-09-29) | hvac |
 
 Product-specific by design: `lib/tenant-config.ts` and `lib/stats.ts` (what onboarding collects and what the weekly report counts), `lib/product.ts`, `lib/recordings.ts`, the copy inside `app/(site)/*/page.tsx`, `lib/config.ts`, `lib/tools.ts`, `lib/schema.ts`
 (the vertical's tables), `retell/`, the dashboard panels, the seed.

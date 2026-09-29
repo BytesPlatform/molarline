@@ -41,6 +41,20 @@ export default function PricingPage() {
           </p>
         </div>
       </section>
+      <section className="s-section">
+        <div className="s-wrap">
+          <p className="s-kicker">Questions</p>
+          <h2 className="s-h2">{PRODUCT.faqTitle}</h2>
+          <div className="s-faq">
+            {PRODUCT.faq.map((item) => (
+              <details key={item.q}>
+                <summary>{item.q}</summary>
+                <p>{item.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
