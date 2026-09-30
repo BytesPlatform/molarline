@@ -341,8 +341,9 @@ far better than fighting a phone line in front of a prospect.
 ## Known TODOs
 
 - `execution_message_type`, `execution_message_description`, `max_retry` and
-  `tool_call_strict_mode` are carried over from the production flow in
-  `../retell/conversation-flow/inbound-reception.flow.json`. They were not
+  `tool_call_strict_mode` are carried over from the first build's production
+  flow, which lived at `retell/conversation-flow/inbound-reception.flow.json`
+  before that tree was removed (it is still in the git history). They were not
   visible in the Create Conversation Flow reference that was checked, so they
   may be rejected or silently dropped. If the push fails on a schema error,
   delete those four and push again.

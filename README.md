@@ -22,7 +22,7 @@ Everything lives in `demo/` (the folder name is historical; it is the whole prod
 | `demo/lib/config.ts`, `demo/lib/tools.ts`, `demo/retell/` | The assistant itself: rules, the tools it can call, the conversation flow |
 | `demo/emails/` | React Email templates |
 | `demo/docs/auth-setup.md` | Clerk and admin console setup |
-| `PLAN.md`, `SHARED.md` | The original build plan, and the register of files shared with the sister products |
+| `SHARED.md` | The register of files shared with the sister products, and the version each carries |
 
 The three products (OnCallDesk, MolarLine, FirstIntake) are separate repositories, Vercel projects and databases by decision. Shared features are copied file for file and listed in `SHARED.md`.
 
