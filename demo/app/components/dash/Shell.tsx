@@ -175,7 +175,7 @@ export default function Shell({
               </span>
             ) : null}
             <ThemeToggle />
-            <a className="btn btn-cta" href="/app/setup/test">
+            <a className="btn btn-cta" href="/app/test">
               Start test call
             </a>
           </div>

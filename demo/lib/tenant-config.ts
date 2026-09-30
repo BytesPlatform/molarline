@@ -30,10 +30,6 @@ export const ONBOARDING_STEPS = [
   { id: "business", title: "Offices and hours", blurb: "Each office, its address, phone, hours and parking, and the number the assistant gives out." },
   { id: "services", title: "What you do", blurb: "Providers and what they do, appointment types and lengths, insurance accepted, the new-patient policy." },
   { id: "behaviour", title: "How it should behave", blurb: "The greeting with the recording notice, the tone, what it says when it cannot help, and the front desk transfer." },
-  { id: "software", title: "Calendar and software", blurb: "The built-in schedule, or the practice software you already run." },
-  { id: "phone", title: "Phone number", blurb: "A new number in your area code, or forward the one you have." },
-  { id: "test", title: "Test call", blurb: "Call your assistant from the browser and tick the checklist." },
-  { id: "live", title: "Go live", blurb: "The summary, what to tell staff, and the forwarding step." },
 ] as const;
 
 export type StepId = (typeof ONBOARDING_STEPS)[number]["id"];
@@ -72,7 +68,13 @@ export interface TenantConfig {
   agent: { flowId: string | null; agentId: string | null; version: number | null; publishedAt: string | null; renderedHash: string | null; voiceId: string | null };
 }
 
-export function defaultConfig(): TenantConfig {
+/**
+ * The starting point for a new workspace. The practice name is woven into
+ * the greeting, because the first sentence a caller hears is the most
+ * noticeable thing in a demo and it must never name someone else.
+ */
+export function defaultConfig(practiceName: string = PRACTICE.name): TenantConfig {
+  const name = practiceName;
   return {
     onboarding: { step: 0, startedAt: null, completedAt: null, checklist: {}, testCallId: null },
     basics: { website: "", timezone: PRACTICE.timezone, callbackNumber: PRACTICE.callbackNumber, afterHoursPolicy: "book" },
@@ -83,7 +85,7 @@ export function defaultConfig(): TenantConfig {
     insurance: [...INSURANCE_ACCEPTED],
     newPatientPolicy: "New patients are welcome. The first visit is a new patient exam, and we ask you to arrive ten minutes early for paperwork.",
     behaviour: {
-      greeting: `Thanks for calling ${PRACTICE.name}. You're speaking with our automated assistant, and this call is recorded for quality. Say staff at any time to reach a person. How can I help?`,
+      greeting: `Thanks for calling ${name}. You're speaking with our automated assistant, and this call is recorded for quality. Say staff at any time to reach a person. How can I help?`,
       tone: "friendly",
       cannotHelp: "That's one for the front desk. I'll pass it along and someone will call you back.",
       transferNumber: "",
@@ -111,7 +113,7 @@ export function mergeConfig(base: TenantConfig, patch: unknown): TenantConfig {
 }
 
 export function configOf(t: Tenant): TenantConfig {
-  const c = mergeConfig(defaultConfig(), t.config);
+  const c = mergeConfig(defaultConfig(t.name), t.config);
   if (t.retell_agent_id && !c.agent.agentId) c.agent.agentId = t.retell_agent_id;
   if (t.phone_number && !c.phone.number) c.phone.number = t.phone_number;
   return c;

@@ -123,18 +123,24 @@ export async function saveBehaviourAction(form: FormData): Promise<void> {
   const transferE164 = transfer ? e164(transfer) : "";
   if (transfer && !transferE164) back("behaviour", "The front desk number does not look like a phone number.", form);
   await saveConfig(ctx.tenant.id, { behaviour: { ...c.behaviour, greeting, tone: text(form, "tone") === "calm" ? "calm" : "friendly", cannotHelp: text(form, "cannot_help") || c.behaviour.cannotHelp, transferNumber: transferE164 || "", takeMessageWhenUnanswered: form.get("take_message") === "on" } }, 4);
-  next(form, "behaviour");
+  if (text(form, "mode") === "settings") next(form, "behaviour");
+
+  // This is the last step. Publish what they just described and open the
+  // dashboard, where the test call is the obvious next thing to do. A
+  // publish that fails must not trap them on the form; the console can
+  // publish it for them.
+  let notice = "Your assistant is ready. Call it and hear how it answers.";
+  try {
+    await provisionAgent(ctx.tenant.id);
+    await goLive(ctx.tenant.id);
+  } catch (err) {
+    if ((err as { digest?: string })?.digest?.startsWith("NEXT_REDIRECT")) throw err;
+    notice = err instanceof Error ? `Saved, but the assistant could not be published: ${err.message}` : "Saved, but the assistant could not be published.";
+  }
+  redirect(`/app?ok=${encodeURIComponent(notice)}`);
 }
 
 /* 5 */
-export async function saveSoftwareAction(form: FormData): Promise<void> {
-  const ctx = await requireTenant();
-  const c = configOf(ctx.tenant);
-  const calendar = (["builtin", "google", "microsoft"].includes(text(form, "calendar")) ? text(form, "calendar") : "builtin") as "builtin" | "google" | "microsoft";
-  const pms = (["none", "dentrix", "opendental", "eaglesoft", "curve", "other"].includes(text(form, "pms")) ? text(form, "pms") : "none") as TenantSoftware;
-  await saveConfig(ctx.tenant.id, { software: { ...c.software, calendar, pms, note: text(form, "note").slice(0, 1000) } }, 5);
-  next(form, "software");
-}
 type TenantSoftware = "none" | "dentrix" | "opendental" | "eaglesoft" | "curve" | "other";
 
 /* 6 */
@@ -153,53 +159,5 @@ export async function publishAgentAction(form: FormData): Promise<void> {
   }
 }
 
-export async function buyNumberAction(form: FormData): Promise<void> {
-  const ctx = await requireTenant();
-  try {
-    const r = await buyNumber(ctx.tenant.id, text(form, "area_code"));
-    await saveConfig(ctx.tenant.id, {}, 6);
-    redirect(`/app/setup/phone?ok=${encodeURIComponent(`Your number is ${r.number}.`)}`);
-  } catch (err) {
-    if ((err as { digest?: string })?.digest?.startsWith("NEXT_REDIRECT")) throw err;
-    back("phone", err instanceof Error ? err.message : "Could not buy a number.", form);
-  }
-}
-
-export async function forwardNumberAction(form: FormData): Promise<void> {
-  const ctx = await requireTenant();
-  const c = configOf(ctx.tenant);
-  const existing = e164(text(form, "existing_number"));
-  if (!existing) back("phone", "Your current number does not look like a phone number.", form);
-  await saveConfig(ctx.tenant.id, { phone: { ...c.phone, mode: "forward", existingNumber: existing, carrier: text(form, "carrier") } }, 6);
-  redirect("/app/setup/phone?ok=" + encodeURIComponent("Forwarding chosen. Buy the number the calls will forward to, then follow the carrier steps below."));
-}
-
-export async function releaseNumberAction(): Promise<void> {
-  const ctx = await requireTenant();
-  await releaseNumber(ctx.tenant.id);
-  redirect("/app/settings?ok=" + encodeURIComponent("Number released."));
-}
-
 /* 7 */
-export async function saveChecklistAction(callId: string, checklist: Record<string, boolean>): Promise<void> {
-  const ctx = await requireTenant();
-  const c = configOf(ctx.tenant);
-  await saveConfig(ctx.tenant.id, { onboarding: { ...c.onboarding, testCallId: callId, checklist: { ...c.onboarding.checklist, ...checklist } } }, 7);
-}
-
-export async function continueFromTestAction(): Promise<void> {
-  const ctx = await requireTenant();
-  await saveConfig(ctx.tenant.id, {}, 7);
-  redirect("/app/setup/live");
-}
-
 /* 8 */
-export async function goLiveAction(): Promise<void> {
-  const ctx = await requireTenant();
-  try {
-    await goLive(ctx.tenant.id);
-  } catch (err) {
-    back("live", err instanceof Error ? err.message : "Could not go live.");
-  }
-  redirect("/app?ok=" + encodeURIComponent("You are live."));
-}

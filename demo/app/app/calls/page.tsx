@@ -126,7 +126,7 @@ export default async function CallsPage({ searchParams }: { searchParams: Promis
         <div className="panel-body">
           {calls.length === 0 ? (
             <p className="empty">
-              No calls yet. Make one from <a href="/app/setup/test">the test call page</a> and it appears here with its
+              No calls yet. Make one from <a href="/app/test">the test call page</a> and it appears here with its
               transcript.
             </p>
           ) : (

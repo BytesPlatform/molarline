@@ -27,10 +27,10 @@ export default async function SetupLayout({ children, params }: { children: Reac
           {PRODUCT.name}
         </a>
         <div className="setup-progress" aria-label="Progress">
-          <div className="setup-progress-bar" style={{ width: `${Math.round((Math.min(reached, 8) / 8) * 100)}%` }} />
+          <div className="setup-progress-bar" style={{ width: `${Math.round((Math.min(reached, ONBOARDING_STEPS.length) / ONBOARDING_STEPS.length) * 100)}%` }} />
         </div>
         <p className="setup-progress-text">
-          {c.onboarding.completedAt ? "Setup complete" : `${Math.min(reached, 8)} of 8 steps done`}
+          {c.onboarding.completedAt ? "Setup complete" : `${Math.min(reached, ONBOARDING_STEPS.length)} of ${ONBOARDING_STEPS.length} steps done`}
         </p>
         <ol className="setup-steps">
           {ONBOARDING_STEPS.map((s, i) => {

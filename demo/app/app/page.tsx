@@ -175,7 +175,7 @@ export default async function AppPage() {
                   <b className="num">{data.agent.avgSeconds ? `${Math.round(data.agent.avgSeconds)}s` : "–"}</b>
                 </div>
               </div>
-              <a className="btn btn-cta agent-test" href="/app/setup/test">
+              <a className="btn btn-cta agent-test" href="/app/test">
                 Start test call
               </a>
             </div>
