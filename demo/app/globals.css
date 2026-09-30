@@ -2148,3 +2148,8 @@ button { font: inherit; color: inherit; }
 :root[data-theme="dark"] .dash-theme-seg.is-dark,
 :root:not([data-theme="dark"]) .dash-theme-seg.is-light { background: var(--bg-surface); color: var(--text); box-shadow: var(--shadow-1); }
 @media (max-width: 720px) { .dash-theme-seg { padding: 0.35rem 0.5rem; } .dash-theme-seg span, .dash-theme-seg { font-size: 0; } .dash-theme-seg svg { width: 1.1rem; height: 1.1rem; } }
+
+/* how much of the trial is left, stated plainly in the top bar */
+.dash-trial { padding: 0.35rem 0.75rem; border-radius: 999px; background: var(--accent-softer); color: var(--text-2); font-size: var(--fs-tiny); font-weight: 600; white-space: nowrap; }
+.dash-trial.is-last { background: var(--warn-soft); color: var(--warn); }
+@media (max-width: 720px) { .dash-trial { display: none; } }

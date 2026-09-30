@@ -165,6 +165,15 @@ export default function Shell({
         <header className="dash-top">
           <Greeting name={account.tenantName} />
           <div className="dash-top-end">
+            {account.trialDaysLeft !== null ? (
+              <span className={`dash-trial${account.trialDaysLeft <= 1 ? " is-last" : ""}`}>
+                {account.trialDaysLeft === 0
+                  ? "Trial ends today"
+                  : account.trialDaysLeft === 1
+                    ? "Last day of your trial"
+                    : `${account.trialDaysLeft} days left in your trial`}
+              </span>
+            ) : null}
             <ThemeToggle />
             <a className="btn btn-cta" href="/app/setup/test">
               Start test call

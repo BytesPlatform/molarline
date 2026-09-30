@@ -1,5 +1,5 @@
 import { authConfigured, platformAdminEmails } from "@/lib/auth";
-import { listTenants } from "@/lib/tenancy";
+import { listTenants, trialState, type Tenant } from "@/lib/tenancy";
 import { leadCounts } from "@/lib/leads";
 import { createTenantAction } from "./actions";
 import Notice from "./Notice";
@@ -7,6 +7,21 @@ import Notice from "./Notice";
 export const dynamic = "force-dynamic";
 
 const DATE = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" });
+
+/** How much of the trial is left, in the words sales needs at a glance. */
+function accessCell(t: Tenant) {
+  const trial = trialState(t);
+  if (!trial.limited) return <span className="admin-sub">no limit</span>;
+  if (trial.expired) return <span className="tag tag-error">finished</span>;
+  return (
+    <>
+      <span className={`tag ${trial.daysLeft <= 1 ? "tag-warn" : "tag-ok"}`}>
+        {trial.daysLeft === 1 ? "last day" : `${trial.daysLeft} days left`}
+      </span>
+      <span className="admin-sub">until {DATE.format(new Date(trial.endsAt as string))}</span>
+    </>
+  );
+}
 
 export default async function AdminHome({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams;
@@ -47,7 +62,7 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
             <tr>
               <th>Business</th>
               <th>Status</th>
-              <th>Plan</th>
+              <th>Access</th>
               <th>Agent</th>
               <th>People</th>
               <th>Calls, 30 days</th>
@@ -68,10 +83,7 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
                     {t.status}
                   </span>
                 </td>
-                <td>
-                  {t.plan}
-                  {t.included_minutes ? <span className="admin-sub">{t.included_minutes} min included</span> : null}
-                </td>
+                <td>{accessCell(t)}</td>
                 <td>{t.retell_agent_id ? <code className="admin-code">{t.retell_agent_id.slice(0, 14)}…</code> : <span className="admin-sub">none yet</span>}</td>
                 <td>{t.members}</td>
                 <td>{t.calls_30d}</td>
@@ -85,8 +97,9 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
       <section className="admin-section">
         <h2 className="admin-title">New customer</h2>
         <p className="admin-help">
-          Creates the workspace and adds the owner. Tick the box to email the invitation now, or send it from the
-          customer's page later. The Retell agent id can be left blank until onboarding creates one.
+          Creates the trial workspace and adds the owner. Tick the box to email the invitation now, or send it from
+          the customer's page later. Access closes on its own when the days run out; you can extend it from their
+          page at any time.
         </p>
         <form action={createTenantAction} className="admin-form">
           <label className="admin-field">
@@ -110,25 +123,8 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
             <input name="timezone" defaultValue="America/Chicago" />
           </label>
           <label className="admin-field">
-            <span>Plan</span>
-            <select name="plan" defaultValue="trial">
-              <option value="trial">Trial</option>
-              <option value="starter">Starter</option>
-              <option value="practice">Practice</option>
-              <option value="growth">Growth</option>
-            </select>
-          </label>
-          <label className="admin-field">
-            <span>Included minutes a month</span>
-            <input name="included_minutes" type="number" min="0" defaultValue="0" />
-          </label>
-          <label className="admin-field">
-            <span>Retell agent id</span>
-            <input name="retell_agent_id" placeholder="agent_…" />
-          </label>
-          <label className="admin-field">
-            <span>Assistant phone number</span>
-            <input name="phone_number" placeholder="+1…" />
+            <span>Days of access</span>
+            <input name="trial_days" type="number" min="1" max="60" defaultValue="2" required />
           </label>
 
           <div className="admin-divider" />

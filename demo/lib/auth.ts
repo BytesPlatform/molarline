@@ -17,7 +17,7 @@
 
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { DEMO_TENANT_ID, getTenant, membershipsForUser, type Membership, type Tenant } from "./tenancy";
+import { DEMO_TENANT_ID, getTenant, membershipsForUser, trialState, type Membership, type Tenant } from "./tenancy";
 
 export interface Session {
   userId: string;
@@ -134,6 +134,9 @@ export async function requireTenant(): Promise<TenantContext> {
   const ctx = await resolveTenant(session);
   if (!ctx) redirect("/app/no-workspace");
   if (ctx.tenant.status === "suspended" && !ctx.admin) redirect("/app/suspended");
+  // A trial that has run out closes the workspace. Our own team keeps
+  // getting in, so support can still look at what the prospect did.
+  if (trialState(ctx.tenant).expired && !ctx.admin) redirect("/app/expired");
   return ctx;
 }
 

@@ -4,7 +4,7 @@
  */
 import { redirect } from "next/navigation";
 import { authConfigured, requireTenant, type TenantContext } from "@/lib/auth";
-import { DEMO_TENANT_ID } from "@/lib/tenancy";
+import { DEMO_TENANT_ID, trialState } from "@/lib/tenancy";
 import { configOf, onboardingComplete } from "@/lib/tenant-config";
 import type { Account } from "@/app/components/AccountChip";
 
@@ -23,5 +23,6 @@ export function accountOf(ctx: TenantContext): Account {
     clerk: authConfigured() && !ctx.session.dev,
     viewingAs: ctx.viewingAs,
     admin: ctx.admin,
+    trialDaysLeft: trialState(ctx.tenant).limited ? trialState(ctx.tenant).daysLeft : null,
   };
 }

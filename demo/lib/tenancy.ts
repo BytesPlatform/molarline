@@ -32,6 +32,8 @@ export interface Tenant {
   retell_agent_id: string | null;
   phone_number: string | null;
   config: Record<string, unknown>;
+  /** When trial access runs out. Null means no limit. */
+  trial_ends_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -79,7 +81,7 @@ export function tenantInScope(): boolean {
 /* ------------------------------------------------------------------ rows */
 
 const TENANT_COLUMNS = `id, name, short_name, tagline, main_number, timezone, plan, included_minutes,
-  status, retell_agent_id, phone_number, config, created_at, updated_at`;
+  status, retell_agent_id, phone_number, config, trial_ends_at, created_at, updated_at`;
 
 export async function getTenant(id: string): Promise<Tenant | null> {
   const rows = await q<Tenant>(`select ${TENANT_COLUMNS} from tenants where id = $1`, [id]);
@@ -127,14 +129,16 @@ export async function createTenant(input: {
   includedMinutes?: number;
   retellAgentId?: string;
   phoneNumber?: string;
+  /** How long the trial lasts. Omitted or 0 means access never expires. */
+  trialDays?: number;
 }): Promise<Tenant> {
   const base = slugify(input.name);
   let id = base;
   for (let n = 2; await getTenant(id); n++) id = `${base}-${n}`;
 
   const rows = await q<Tenant>(
-    `insert into tenants (id, name, short_name, tagline, main_number, timezone, plan, included_minutes, retell_agent_id, phone_number)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+    `insert into tenants (id, name, short_name, tagline, main_number, timezone, plan, included_minutes, retell_agent_id, phone_number, trial_ends_at)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
      returning ${TENANT_COLUMNS}`,
     [
       id,
@@ -147,6 +151,7 @@ export async function createTenant(input: {
       input.includedMinutes ?? 0,
       input.retellAgentId?.trim() || null,
       input.phoneNumber?.trim() || null,
+      input.trialDays && input.trialDays > 0 ? new Date(Date.now() + input.trialDays * 86_400_000).toISOString() : null,
     ],
   );
   return rows[0];
@@ -154,7 +159,7 @@ export async function createTenant(input: {
 
 export async function updateTenant(
   id: string,
-  patch: Partial<Pick<Tenant, "name" | "short_name" | "tagline" | "main_number" | "plan" | "included_minutes" | "status" | "retell_agent_id" | "phone_number" | "timezone">>,
+  patch: Partial<Pick<Tenant, "name" | "short_name" | "tagline" | "main_number" | "plan" | "included_minutes" | "status" | "retell_agent_id" | "phone_number" | "timezone" | "trial_ends_at">>,
 ): Promise<void> {
   const keys = Object.keys(patch) as (keyof typeof patch)[];
   if (!keys.length) return;
@@ -186,6 +191,34 @@ export async function getTenantSecret(t: Tenant, name: string): Promise<string |
   if (!boxed) return null;
   const { decryptSecret } = await import("./secretbox");
   return decryptSecret(boxed);
+}
+
+/**
+ * How much trial time is left. A tenant with no end date never expires,
+ * which is what the demo tenant and our own workspaces use.
+ */
+export interface TrialState {
+  limited: boolean;
+  expired: boolean;
+  /** Whole days remaining, rounded up. Zero on the last day. */
+  daysLeft: number;
+  endsAt: string | null;
+}
+
+export function trialState(t: Tenant): TrialState {
+  if (!t.trial_ends_at) return { limited: false, expired: false, daysLeft: 0, endsAt: null };
+  const ms = new Date(t.trial_ends_at).getTime() - Date.now();
+  return {
+    limited: true,
+    expired: ms <= 0,
+    daysLeft: Math.max(0, Math.ceil(ms / 86_400_000)),
+    endsAt: t.trial_ends_at,
+  };
+}
+
+/** Pushes the end date out from now, for "give them two more days". */
+export async function extendTrial(id: string, days: number): Promise<void> {
+  await q(`update tenants set trial_ends_at = now() + make_interval(days => $2), updated_at = now() where id = $1`, [id, days]);
 }
 
 /* ------------------------------------------------------------ memberships */

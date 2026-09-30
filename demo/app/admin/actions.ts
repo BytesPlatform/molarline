@@ -12,16 +12,7 @@ import { resetTenant } from "@/lib/db";
 import { retryJob, runDueJobs } from "@/lib/jobs";
 import { provisionAgent } from "@/lib/provision";
 import { convertLead, setLeadNotes, setLeadStatus, type LeadStatus } from "@/lib/leads";
-import {
-  addMembership,
-  createTenant,
-  getMembership,
-  getTenant,
-  recordInvitation,
-  removeMembership,
-  updateTenant,
-  type TenantStatus,
-} from "@/lib/tenancy";
+import { addMembership, createTenant, getMembership, getTenant, recordInvitation, removeMembership, updateTenant, type TenantStatus, extendTrial } from "@/lib/tenancy";
 
 function text(form: FormData, key: string): string {
   const v = form.get(key);
@@ -50,16 +41,15 @@ export async function createTenantAction(form: FormData): Promise<void> {
   if (!name) back("/admin", "Business name is required.", "error");
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(ownerEmail)) back("/admin", "A valid owner email is required.", "error");
 
+  const days = Number(text(form, "trial_days"));
   const tenant = await createTenant({
     name,
     shortName: text(form, "short_name") || undefined,
     tagline: text(form, "tagline") || undefined,
     mainNumber: text(form, "main_number") || undefined,
     timezone: text(form, "timezone") || undefined,
-    plan: text(form, "plan") || undefined,
-    includedMinutes: Number(text(form, "included_minutes")) || 0,
-    retellAgentId: text(form, "retell_agent_id") || undefined,
-    phoneNumber: text(form, "phone_number") || undefined,
+    // The assistant and its number come from onboarding, not from here.
+    trialDays: Number.isFinite(days) && days > 0 ? days : 2,
   });
 
   const member = await addMembership({ tenantId: tenant.id, email: ownerEmail, name: text(form, "owner_name") || undefined, role: "owner" });
@@ -197,4 +187,13 @@ export async function provisionTenantAction(form: FormData): Promise<void> {
     if ((err as { digest?: string })?.digest?.startsWith("NEXT_REDIRECT")) throw err;
     back(`/admin/tenants/${id}`, err instanceof Error ? err.message : "Could not publish.", "error");
   }
+}
+
+export async function extendTrialAction(form: FormData): Promise<void> {
+  await requirePlatformAdmin();
+  const id = text(form, "id");
+  const days = Number(text(form, "days"));
+  if (!id || !Number.isFinite(days) || days < 1) back(`/admin/tenants/${id}`, "Pick how many days to give them.", "error");
+  await extendTrial(id, days);
+  back(`/admin/tenants/${id}`, `Access runs for another ${days} day${days === 1 ? "" : "s"}.`, "ok");
 }

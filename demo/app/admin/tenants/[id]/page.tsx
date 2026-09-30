@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getTenant, listMemberships } from "@/lib/tenancy";
+import { getTenant, listMemberships, trialState } from "@/lib/tenancy";
 import { ONBOARDING_STEPS, configOf, readiness } from "@/lib/tenant-config";
 import {
   clearWorkspaceAction,
@@ -9,6 +9,7 @@ import {
   removeMemberAction,
   resendInviteAction,
   setStatusAction,
+  extendTrialAction,
   updateTenantAction,
 } from "../../actions";
 import Notice from "../../Notice";
@@ -29,6 +30,7 @@ export default async function TenantPage({
   const tenant = await getTenant(id);
   if (!tenant) notFound();
   const members = await listMemberships(id);
+  const trial = trialState(tenant);
   const c = configOf(tenant);
   const ready = readiness(c);
 
@@ -81,6 +83,35 @@ export default async function TenantPage({
       </section>
 
       <section className="admin-grid">
+        <div className="admin-section">
+          <h2 className="admin-title-sm">Trial access</h2>
+          <p className="admin-help">
+            {trial.limited ? (
+              trial.expired ? (
+                <span className="tag tag-error">finished</span>
+              ) : (
+                <span className={`tag ${trial.daysLeft <= 1 ? "tag-warn" : "tag-ok"}`}>
+                  {trial.daysLeft === 1 ? "last day" : `${trial.daysLeft} days left`}
+                </span>
+              )
+            ) : (
+              <span className="admin-sub">no limit set</span>
+            )}
+            {trial.endsAt ? <span className="admin-sub">until {WHEN.format(new Date(trial.endsAt))}</span> : null}
+          </p>
+          <div className="admin-actions">
+            {[2, 7, 30].map((d) => (
+              <form key={d} action={extendTrialAction}>
+                <input type="hidden" name="id" value={tenant.id} />
+                <input type="hidden" name="days" value={d} />
+                <button className="btn btn-quiet" type="submit">
+                  Give {d} days
+                </button>
+              </form>
+            ))}
+          </div>
+        </div>
+
         <div className="admin-section">
           <h2 className="admin-title-sm">Status</h2>
           <p className="admin-help">

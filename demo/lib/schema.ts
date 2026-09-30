@@ -33,9 +33,13 @@ create table if not exists tenants (
   retell_agent_id  text,
   phone_number     text,
   config           jsonb not null default '{}'::jsonb,
+  -- When the trial access runs out. Null means no limit, which is what
+  -- the demo tenant and our own workspaces use.
+  trial_ends_at    timestamptz,
   created_at       timestamptz not null default now(),
   updated_at       timestamptz not null default now()
 );
+alter table tenants add column if not exists trial_ends_at timestamptz;
 create unique index if not exists tenants_agent on tenants (retell_agent_id) where retell_agent_id is not null;
 
 create table if not exists memberships (

@@ -17,6 +17,8 @@ export interface Account {
   /** Set when a platform admin is looking at a workspace they are not a member of. */
   viewingAs: boolean;
   admin: boolean;
+  /** Days left on the trial, or null when the workspace has no limit. */
+  trialDaysLeft: number | null;
 }
 
 export default function AccountChip({ account }: { account: Account }) {
